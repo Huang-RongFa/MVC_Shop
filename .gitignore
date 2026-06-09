@@ -7,3 +7,6 @@ obj/
 *.sln.docstates
 
 appsettings.Development.json
+
+.buildcheck/
+MyMVC/App_Data/DataProtectionKeys/

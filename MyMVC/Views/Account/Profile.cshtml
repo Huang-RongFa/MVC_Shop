@@ -1,0 +1,34 @@
+@model MyWeb.Models.ViewModels.Auth.MemberProfileViewModel
+@{
+    ViewData["Title"] = "會員資料";
+}
+
+<header class="page-header storefront-page-header">
+    <p class="eyebrow">Profile</p>
+    <h1>會員資料</h1>
+    <p>會員資料修改需由後端驗證輸入，且不得讓前端決定角色或權限。</p>
+</header>
+
+<section class="card settings-card">
+    <div class="settings-section">
+        <h2 class="settings-title">基本資料</h2>
+        <div class="settings-row">
+            <div>
+                <div class="settings-row-label">顯示名稱</div>
+                <div class="settings-row-desc">@Model.DisplayName</div>
+            </div>
+        </div>
+        <div class="settings-row">
+            <div>
+                <div class="settings-row-label">Email</div>
+                <div class="settings-row-desc">@Model.Email</div>
+            </div>
+        </div>
+        <div class="settings-row">
+            <div>
+                <div class="settings-row-label">手機</div>
+                <div class="settings-row-desc">@Model.PhoneNumber</div>
+            </div>
+        </div>
+    </div>
+</section>

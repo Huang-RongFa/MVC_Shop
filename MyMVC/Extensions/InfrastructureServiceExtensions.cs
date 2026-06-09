@@ -1,5 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using MyWeb.Application.Interfaces.Auth;
+using MyWeb.Application.Interfaces.Pages;
+using MyWeb.Application.Services.Auth;
+using MyWeb.Application.Services.Pages;
 using MyWeb.Data;
+using MyWeb.Domain.Entities.Accounts;
+using MyWeb.Infrastructure.Repositories.Auth;
 
 namespace MyWeb.Extensions;
 
@@ -27,6 +34,14 @@ public static class InfrastructureServiceExtensions
                     errorNumbersToAdd: null);
             });
         });
+
+        services.AddScoped<IUserAuthRepository, UserAuthRepository>();
+        services.AddScoped<IStorefrontAuthService, StorefrontAuthService>();
+        services.AddScoped<IAdminAuthService, AdminAuthService>();
+        services.AddScoped<IStorefrontPageService, StorefrontPageService>();
+        services.AddScoped<IAdminPageService, AdminPageService>();
+        services.AddScoped<IAuthPageService, AuthPageService>();
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
         return services;
     }

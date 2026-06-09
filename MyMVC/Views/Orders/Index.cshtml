@@ -1,0 +1,44 @@
+@model MyWeb.Models.ViewModels.Storefront.OrderListViewModel
+@{
+    ViewData["Title"] = "我的訂單";
+}
+
+<header class="page-header storefront-page-header">
+    <p class="eyebrow">Orders</p>
+    <h1>我的訂單</h1>
+    <p>會員只能查詢自己的訂單，後端需依登入身分再次檢查資料權限。</p>
+</header>
+
+<section class="card">
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">訂單編號</th>
+                    <th scope="col">建立時間</th>
+                    <th scope="col">金額</th>
+                    <th scope="col">訂單狀態</th>
+                    <th scope="col">付款</th>
+                    <th scope="col">出貨</th>
+                    <th scope="col">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model.Orders)
+                {
+                    <tr>
+                        <td>@order.OrderNumber</td>
+                        <td>@order.CreatedAtText</td>
+                        <td>@order.TotalText</td>
+                        <td>@order.OrderStatusText</td>
+                        <td>@order.PaymentStatusText</td>
+                        <td>@order.ShipmentStatusText</td>
+                        <td>
+                            <a class="btn btn-secondary btn-sm" asp-controller="Orders" asp-action="Details" asp-route-id="@order.OrderId">詳細</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

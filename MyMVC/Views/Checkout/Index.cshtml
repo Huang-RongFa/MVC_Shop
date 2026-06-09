@@ -1,0 +1,66 @@
+@model MyWeb.Models.ViewModels.Storefront.CheckoutViewModel
+@{
+    ViewData["Title"] = "結帳";
+}
+
+<header class="page-header storefront-page-header">
+    <p class="eyebrow">Checkout</p>
+    <h1>結帳</h1>
+    <p>送出訂單時應由 OrderService 使用 Transaction 建立訂單、明細與保留庫存。</p>
+</header>
+
+<form method="post" class="checkout-layout">
+    @Html.AntiForgeryToken()
+    <section class="card checkout-form-card">
+        <h2 class="card-title">收件資料</h2>
+        <div class="form-group">
+            <label class="form-label" for="recipientName">收件人</label>
+            <input id="recipientName" name="recipientName" value="@Model.ShippingInfo.RecipientName" class="form-control" maxlength="80" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="phoneNumber">手機</label>
+            <input id="phoneNumber" name="phoneNumber" value="@Model.ShippingInfo.PhoneNumber" class="form-control" maxlength="30" autocomplete="tel" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="address">配送地址</label>
+            <textarea id="address" name="address" class="form-control" maxlength="300" rows="4" required>@Model.ShippingInfo.Address</textarea>
+        </div>
+
+        <h2 class="card-title">付款方式</h2>
+        <div class="payment-method-grid">
+            @foreach (var payment in Model.PaymentMethods)
+            {
+                <label class="payment-method-card" for="payment-@payment.Code">
+                    <input id="payment-@payment.Code" name="paymentMethod" value="@payment.Code" type="radio" required />
+                    <span>
+                        <strong>@payment.DisplayName</strong>
+                        <small>@payment.Description</small>
+                    </span>
+                </label>
+            }
+        </div>
+    </section>
+
+    <aside class="card order-summary-card">
+        <h2 class="card-title">確認金額</h2>
+        <dl class="summary-list">
+            <div>
+                <dt>商品小計</dt>
+                <dd>@Model.OrderSummary.SubtotalText</dd>
+            </div>
+            <div>
+                <dt>優惠折扣</dt>
+                <dd>@Model.OrderSummary.DiscountTotalText</dd>
+            </div>
+            <div>
+                <dt>物流費</dt>
+                <dd>@Model.OrderSummary.ShippingFeeText</dd>
+            </div>
+            <div class="summary-total">
+                <dt>應付總額</dt>
+                <dd>@Model.OrderSummary.PayableTotalText</dd>
+            </div>
+        </dl>
+        <button class="btn btn-primary" type="submit" disabled>送出訂單</button>
+    </aside>
+</form>

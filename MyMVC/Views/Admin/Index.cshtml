@@ -1,0 +1,69 @@
+@model MyWeb.Models.ViewModels.Admin.AdminDashboardViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "後台 Dashboard";
+}
+
+<header class="page-header admin-page-header">
+    <div>
+        <p class="eyebrow">Dashboard.Read</p>
+        <h1>營運總覽</h1>
+        <p>Dashboard 只屬於後台，前台不顯示營收、轉換率或管理指標。</p>
+    </div>
+    <a class="btn btn-secondary" asp-controller="Admin" asp-action="Analytics">查看數據分析</a>
+</header>
+
+<section class="stats-grid" aria-label="後台營運指標">
+    @foreach (var metric in Model.Metrics)
+    {
+        <article class="stat-card admin-stat admin-stat-@metric.Variant">
+            <div class="stat-label">@metric.Label</div>
+            <div class="stat-value">@metric.Value</div>
+            <div class="stat-note">@metric.Note</div>
+        </article>
+    }
+</section>
+
+<section class="content-grid">
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">待處理事項</h2>
+                <p class="card-subtitle">交易流程需由 Service 控制狀態與交易一致性。</p>
+            </div>
+        </div>
+        <div class="task-list">
+            @foreach (var item in Model.WorkItems)
+            {
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">@item.Title</div>
+                        <div class="task-meta">@item.Description</div>
+                    </div>
+                    <span class="badge badge-@item.BadgeVariant">@item.BadgeText</span>
+                </div>
+            }
+        </div>
+    </article>
+
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">系統提醒</h2>
+                <p class="card-subtitle">重要後台操作需保留稽核紀錄。</p>
+            </div>
+        </div>
+        <div class="task-list">
+            @foreach (var item in Model.SystemAlerts)
+            {
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">@item.Title</div>
+                        <div class="task-meta">@item.Description</div>
+                    </div>
+                    <span class="badge badge-@item.BadgeVariant">@item.BadgeText</span>
+                </div>
+            }
+        </div>
+    </article>
+</section>

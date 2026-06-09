@@ -1,0 +1,38 @@
+@model MyWeb.Models.ViewModels.Storefront.StorefrontHomeViewModel
+@{
+    ViewData["Title"] = "關於我們";
+}
+
+<section class="storefront-hero about-hero">
+    <div class="hero-copy">
+        <p class="eyebrow">About MVC Shop</p>
+        <h1>穩定、透明的新鮮食材服務</h1>
+        <p>前台頁面只呈現顧客購物需要的資訊；營運數據、庫存調整與稽核紀錄僅留在後台。</p>
+    </div>
+    <div class="hero-market" aria-label="品牌食材展示">
+        <div class="market-crate visual-box"></div>
+        <div class="market-crate visual-fruit"></div>
+        <div class="market-crate visual-vegetable"></div>
+    </div>
+</section>
+
+<section class="storefront-section">
+    <div class="section-heading">
+        <p class="eyebrow">Service</p>
+        <h2>服務特色</h2>
+    </div>
+    <div class="feature-grid">
+        <article class="card">
+            <h3>價格由後端提供</h3>
+            <p>商品價格、促銷與折扣不由前端自行決定。</p>
+        </article>
+        <article class="card">
+            <h3>購物流程需登入</h3>
+            <p>購物車、結帳、付款與訂單查詢只開放登入會員。</p>
+        </article>
+        <article class="card">
+            <h3>交易流程可稽核</h3>
+            <p>訂單、付款、出貨與退款會依後端流程留下紀錄。</p>
+        </article>
+    </div>
+</section>

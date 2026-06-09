@@ -1,8 +1,94 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model MyWeb.Models.ViewModels.Storefront.StorefrontHomeViewModel
+@{
+    ViewData["Title"] = "新鮮蔬果電商";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="storefront-hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Fresh Grocery</p>
+        <h1>MVC Shop</h1>
+        <p>新鮮水果、蔬菜與冷藏食材，依正式商品資料計算價格、優惠與庫存狀態。</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" asp-controller="Products" asp-action="Index">瀏覽商品</a>
+            @if (Model.IsAuthenticated)
+            {
+                <a class="btn btn-secondary" asp-controller="Cart" asp-action="Index">查看購物車</a>
+            }
+            else
+            {
+                <a class="btn btn-secondary" asp-controller="Account" asp-action="Login">登入後購買</a>
+            }
+        </div>
+    </div>
+    <div class="hero-market" aria-label="蔬果展示">
+        <div class="market-crate visual-apple"></div>
+        <div class="market-crate visual-broccoli"></div>
+        <div class="market-crate visual-salad"></div>
+    </div>
+</section>
+
+<section class="storefront-section">
+    <div class="section-heading">
+        <p class="eyebrow">Categories</p>
+        <h2>商品分類</h2>
+    </div>
+    <div class="category-grid">
+        @foreach (var category in Model.Categories)
+        {
+            <a class="category-card" asp-controller="Products" asp-action="Index" asp-route-category="@category.Slug">
+                <span class="category-visual @category.VisualClass"></span>
+                <span class="category-title">@category.Name</span>
+                <span class="category-desc">@category.Description</span>
+            </a>
+        }
+    </div>
+</section>
+
+<section class="storefront-section">
+    <div class="section-heading">
+        <p class="eyebrow">Featured</p>
+        <h2>精選商品</h2>
+    </div>
+    <div class="product-grid">
+        @foreach (var product in Model.FeaturedProducts)
+        {
+            <article class="product-card">
+                <div class="product-media @product.VisualClass" aria-hidden="true"></div>
+                <div class="product-body">
+                    <div class="product-card-meta">
+                        <span class="badge badge-green">@product.CategoryName</span>
+                        <span class="badge badge-blue">@product.PromotionLabel</span>
+                    </div>
+                    <h3>@product.Name</h3>
+                    <p>@product.ShortDescription</p>
+                    <div class="product-card-footer">
+                        <strong>@product.PriceText</strong>
+                        <span class="badge badge-@product.StockStatusVariant">@product.StockStatusText</span>
+                    </div>
+                    <div class="product-actions">
+                        <a class="btn btn-secondary" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">查看詳細</a>
+                        @if (product.CanAddToCart)
+                        {
+                            <a class="btn btn-primary" asp-controller="Cart" asp-action="Index">加入購物車</a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">登入後購買</a>
+                        }
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+</section>
+
+<section class="promotion-grid">
+    @foreach (var banner in Model.PromotionBanners)
+    {
+        <article class="promotion-card">
+            <span class="badge badge-orange">@banner.BadgeText</span>
+            <h2>@banner.Title</h2>
+            <p>@banner.Description</p>
+        </article>
+    }
+</section>

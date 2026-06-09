@@ -1,0 +1,28 @@
+@model MyWeb.Models.ViewModels.Storefront.CheckoutCompleteViewModel
+@{
+    ViewData["Title"] = "訂單完成";
+}
+
+<section class="completion-panel card">
+    <p class="eyebrow">Order Complete</p>
+    <h1>訂單已建立</h1>
+    <dl class="summary-list">
+        <div>
+            <dt>訂單編號</dt>
+            <dd>@Model.OrderNumber</dd>
+        </div>
+        <div>
+            <dt>訂單狀態</dt>
+            <dd>@Model.OrderStatusText</dd>
+        </div>
+        <div>
+            <dt>付款狀態</dt>
+            <dd>@Model.PaymentStatusText</dd>
+        </div>
+    </dl>
+    <p>@Model.NextStepText</p>
+    <div class="product-actions">
+        <a class="btn btn-primary" asp-controller="Orders" asp-action="Index">查看我的訂單</a>
+        <a class="btn btn-secondary" asp-controller="Products" asp-action="Index">繼續購物</a>
+    </div>
+</section>

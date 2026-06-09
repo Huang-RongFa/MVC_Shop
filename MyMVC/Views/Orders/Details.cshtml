@@ -1,0 +1,77 @@
+@model MyWeb.Models.ViewModels.Storefront.OrderDetailViewModel
+@{
+    ViewData["Title"] = $"訂單 {Model.OrderNumber}";
+}
+
+<header class="page-header storefront-page-header">
+    <p class="eyebrow">Order Detail</p>
+    <h1>@Model.OrderNumber</h1>
+    <p>付款、出貨與退款不可混成同一步流程。</p>
+</header>
+
+<section class="order-detail-grid">
+    <article class="card">
+        <h2 class="card-title">訂單狀態</h2>
+        <dl class="summary-list">
+            <div>
+                <dt>訂單</dt>
+                <dd>@Model.OrderStatusText</dd>
+            </div>
+            <div>
+                <dt>付款</dt>
+                <dd>@Model.PaymentStatusText</dd>
+            </div>
+            <div>
+                <dt>出貨</dt>
+                <dd>@Model.ShipmentStatusText</dd>
+            </div>
+            <div class="summary-total">
+                <dt>金額</dt>
+                <dd>@Model.TotalText</dd>
+            </div>
+        </dl>
+    </article>
+
+    <article class="card">
+        <h2 class="card-title">狀態歷史</h2>
+        <div class="timeline">
+            @foreach (var item in Model.Timeline)
+            {
+                <div class="timeline-item">
+                    <strong>@item.Title</strong>
+                    <span>@item.OccurredAtText</span>
+                    <p>@item.Description</p>
+                </div>
+            }
+        </div>
+    </article>
+</section>
+
+<section class="card">
+    <h2 class="card-title">訂單明細</h2>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">商品</th>
+                    <th scope="col">規格</th>
+                    <th scope="col">數量</th>
+                    <th scope="col">單價</th>
+                    <th scope="col">小計</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.SkuName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.UnitPriceText</td>
+                        <td>@item.LineTotalText</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

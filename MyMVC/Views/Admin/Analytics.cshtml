@@ -1,0 +1,82 @@
+@model MyWeb.Models.ViewModels.Admin.AdminAnalyticsViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "數據分析";
+}
+
+<header class="page-header admin-page-header">
+    <div>
+        <p class="eyebrow">Analytics.Read</p>
+        <h1>數據分析</h1>
+        <p>營收、轉換率與退款率屬於後台營運資訊，不可顯示在前台。</p>
+    </div>
+</header>
+
+<section class="stats-grid" aria-label="分析指標">
+    @foreach (var metric in Model.Metrics)
+    {
+        <article class="stat-card admin-stat admin-stat-@metric.Variant">
+            <div class="stat-label">@metric.Label</div>
+            <div class="stat-value">@metric.Value</div>
+            <div class="stat-note">@metric.Note</div>
+        </article>
+    }
+</section>
+
+<section class="analytics-grid">
+    <article class="card">
+        <h2 class="card-title">營收趨勢</h2>
+        <div class="admin-bars">
+            @foreach (var point in Model.RevenueTrend)
+            {
+                <div class="admin-bar-item">
+                    <span class="admin-bar" style="height:@point.Percentage%"></span>
+                    <span>@point.Label</span>
+                </div>
+            }
+        </div>
+    </article>
+
+    <article class="card">
+        <h2 class="card-title">訂單流程</h2>
+        <div class="task-list">
+            @foreach (var point in Model.OrderTrend)
+            {
+                <div class="task-item">
+                    <div>
+                        <div class="task-title">@point.Label</div>
+                        <div class="task-meta">@point.ValueText</div>
+                    </div>
+                    <span class="progress-pill" style="--value:@point.Percentage%">@point.Percentage%</span>
+                </div>
+            }
+        </div>
+    </article>
+</section>
+
+<section class="card">
+    <h2 class="card-title">商品銷售排行</h2>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">商品</th>
+                    <th scope="col">分類</th>
+                    <th scope="col">銷售</th>
+                    <th scope="col">來源</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.TopSellingProducts)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.CategoryName</td>
+                        <td>@product.ValueText</td>
+                        <td><span class="badge badge-blue">@product.BadgeText</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

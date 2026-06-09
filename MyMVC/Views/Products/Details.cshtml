@@ -1,0 +1,55 @@
+@model MyWeb.Models.ViewModels.Storefront.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.ProductName;
+}
+
+<section class="product-detail-layout">
+    <div class="product-detail-media @Model.VisualClass" aria-hidden="true"></div>
+    <div class="product-detail-panel">
+        <p class="eyebrow">@Model.CategoryName</p>
+        <h1>@Model.ProductName</h1>
+        <p>@Model.Description</p>
+        <div class="product-detail-price">@Model.PriceRange</div>
+        <span class="badge badge-@Model.StockStatusVariant">@Model.StockStatusText</span>
+
+        <section class="sku-panel" aria-label="SKU 選項">
+            <h2>規格</h2>
+            @foreach (var sku in Model.Skus)
+            {
+                <article class="sku-row">
+                    <div>
+                        <strong>@sku.SkuName</strong>
+                        <span>@sku.StockStatusText</span>
+                    </div>
+                    <span>@sku.PriceText</span>
+                </article>
+            }
+        </section>
+
+        <div class="product-actions">
+            @if (Model.CanAddToCart)
+            {
+                <a class="btn btn-primary" asp-controller="Cart" asp-action="Index">加入購物車</a>
+            }
+            else
+            {
+                <a class="btn btn-primary"
+                   asp-controller="Account"
+                   asp-action="Login"
+                   asp-route-returnUrl="@Url.Action("Details", "Products", new { id = Model.ProductId })">登入後購買</a>
+            }
+            <a class="btn btn-secondary" asp-controller="Products" asp-action="Index">返回商品</a>
+        </div>
+    </div>
+</section>
+
+<section class="storefront-section">
+    <div class="feature-grid">
+        @foreach (var highlight in Model.Highlights)
+        {
+            <article class="card">
+                <p>@highlight</p>
+            </article>
+        }
+    </div>
+</section>

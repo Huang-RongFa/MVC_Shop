@@ -1,0 +1,6 @@
+@model MyWeb.Models.ViewModels.Admin.AdminModulePageViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = Model.Title;
+}
+@await Html.PartialAsync("_AdminModulePage", Model)

@@ -1,0 +1,67 @@
+@model MyWeb.Models.ViewModels.Storefront.ProductListViewModel
+@{
+    ViewData["Title"] = "商品列表";
+}
+
+<header class="page-header storefront-page-header">
+    <p class="eyebrow">Products</p>
+    <h1>商品列表</h1>
+    <p>可匿名瀏覽商品；購物車與結帳需登入後才能使用。</p>
+</header>
+
+<section class="card product-filter-card">
+    <form method="get" asp-controller="Products" asp-action="Index" class="product-filter-form">
+        <div class="form-group">
+            <label class="form-label" for="keyword">搜尋商品</label>
+            <input id="keyword" name="keyword" value="@Model.Keyword" class="form-control" maxlength="80" autocomplete="off" />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="category">分類</label>
+            <select id="category" name="category" class="form-select">
+                <option value="">全部分類</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category.Slug" selected="@(category.Slug == Model.SelectedCategorySlug)">
+                        @category.Name
+                    </option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">搜尋</button>
+    </form>
+</section>
+
+<section class="product-grid">
+    @foreach (var product in Model.Products)
+    {
+        <article class="product-card">
+            <div class="product-media @product.VisualClass" aria-hidden="true"></div>
+            <div class="product-body">
+                <div class="product-card-meta">
+                    <span class="badge badge-green">@product.CategoryName</span>
+                    <span class="badge badge-blue">@product.PromotionLabel</span>
+                </div>
+                <h2>@product.Name</h2>
+                <p>@product.ShortDescription</p>
+                <div class="product-card-footer">
+                    <strong>@product.PriceText</strong>
+                    <span class="badge badge-@product.StockStatusVariant">@product.StockStatusText</span>
+                </div>
+                <div class="product-actions">
+                    <a class="btn btn-secondary" asp-controller="Products" asp-action="Details" asp-route-id="@product.ProductId">查看詳細</a>
+                    @if (product.CanAddToCart)
+                    {
+                        <a class="btn btn-primary" asp-controller="Cart" asp-action="Index">加入購物車</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary"
+                           asp-controller="Account"
+                           asp-action="Login"
+                           asp-route-returnUrl="@Url.Action("Details", "Products", new { id = product.ProductId })">登入後購買</a>
+                    }
+                </div>
+            </div>
+        </article>
+    }
+</section>

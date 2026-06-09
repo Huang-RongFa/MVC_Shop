@@ -1,0 +1,59 @@
+@{
+    var area = ViewData["MenuArea"]?.ToString() ?? "Storefront";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+<div class="mobile-menu-overlay" onclick="closeMobileMenu()" aria-hidden="true"></div>
+<aside class="mobile-menu" aria-label="行動選單">
+    <div class="mobile-menu-header">
+        <a class="brand" asp-controller="Home" asp-action="Index">
+            <span class="brand-mark">MS</span>
+            <span>MVC Shop</span>
+        </a>
+        <button class="mobile-menu-close" type="button" onclick="closeMobileMenu()" aria-label="關閉選單">×</button>
+    </div>
+    <div class="mobile-menu-nav">
+        @if (area == "Admin")
+        {
+            <a asp-controller="Admin" asp-action="Index">Dashboard</a>
+            <a asp-controller="Admin" asp-action="Analytics">營運分析</a>
+            <a asp-controller="Admin" asp-action="Products">商品管理</a>
+            <a asp-controller="Admin" asp-action="Inventory">庫存管理</a>
+            <a asp-controller="Admin" asp-action="Orders">訂單管理</a>
+            <a asp-controller="Admin" asp-action="Payments">付款管理</a>
+            <a asp-controller="Admin" asp-action="Shipments">物流管理</a>
+            <a asp-controller="Admin" asp-action="Refunds">退款管理</a>
+            <a asp-controller="Admin" asp-action="Coupons">優惠券</a>
+            <a asp-controller="Admin" asp-action="Promotions">促銷活動</a>
+            <a asp-controller="Admin" asp-action="AuditLogs">稽核紀錄</a>
+            <a asp-controller="Admin" asp-action="Settings">系統設定</a>
+        }
+        else
+        {
+            <a asp-controller="Home" asp-action="Index">首頁</a>
+            <a asp-controller="Products" asp-action="Index">商品</a>
+            <a asp-controller="Home" asp-action="About">關於我們</a>
+            @if (isAuthenticated)
+            {
+                <a asp-controller="Cart" asp-action="Index">購物車</a>
+                <a asp-controller="Orders" asp-action="Index">我的訂單</a>
+                <a asp-controller="Account" asp-action="Profile">會員資料</a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/products">登入</a>
+                <a asp-controller="Account" asp-action="Register">註冊</a>
+            }
+        }
+    </div>
+    <div class="mobile-menu-footer">
+        @await Html.PartialAsync("_ThemeToggle")
+        @if (area != "Admin" && isAuthenticated)
+        {
+            <form class="mobile-logout-form" method="post" asp-controller="Account" asp-action="Logout">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-ghost logout-btn" type="submit">登出</button>
+            </form>
+        }
+    </div>
+</aside>

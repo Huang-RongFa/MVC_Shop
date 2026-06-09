@@ -1,0 +1,72 @@
+@model MyWeb.Models.ViewModels.Auth.AuthLoginPageViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="auth-card">
+    <a class="brand auth-brand" asp-controller="Admin" asp-action="Login">
+        <span class="brand-mark">MS</span>
+        <span>MVC Shop Admin</span>
+    </a>
+    <h1>@Model.Title</h1>
+    <p>@Model.Subtitle</p>
+
+    <div id="login-error" class="alert alert-error" role="alert"></div>
+
+    <form id="admin-login-form" class="auth-form" autocomplete="on">
+        <div class="form-group">
+            <label class="form-label" for="account">@Model.AccountLabel</label>
+            <input id="account" name="account" class="form-control" type="text" maxlength="100" autocomplete="username" required />
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="password">密碼</label>
+            <input id="password" name="password" class="form-control" type="password" minlength="6" maxlength="200" autocomplete="current-password" required />
+        </div>
+        <div class="auth-row">
+            <label class="checkbox-label" for="rememberMe">
+                <input id="rememberMe" name="rememberMe" type="checkbox" />
+                記住我 7 天
+            </label>
+            <a asp-controller="Account" asp-action="ForgotPassword">忘記密碼</a>
+        </div>
+        <button id="login-submit" class="btn btn-primary" type="submit">@Model.SubmitText</button>
+    </form>
+
+    <p class="auth-footer">登入狀態使用 HttpOnly Cookie 保存，前端不保存高權限 Token。</p>
+</section>
+
+@section Scripts {
+    <script>
+        const form = document.getElementById("admin-login-form");
+        const errorBox = document.getElementById("login-error");
+        const submitButton = document.getElementById("login-submit");
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.add("show");
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            errorBox.classList.remove("show");
+            submitButton.disabled = true;
+            submitButton.textContent = "登入中...";
+
+            try {
+                await adminAuth.login({
+                    account: document.getElementById("account").value,
+                    password: document.getElementById("password").value,
+                    rememberMe: document.getElementById("rememberMe").checked
+                });
+
+                window.location.replace("@Model.PostLoginPath");
+            } catch (error) {
+                showError(error.message || "帳號或密碼錯誤，請重新確認。");
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "@Model.SubmitText";
+            }
+        });
+    </script>
+}

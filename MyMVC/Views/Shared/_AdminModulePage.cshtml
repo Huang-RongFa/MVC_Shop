@@ -1,0 +1,103 @@
+@model MyWeb.Models.ViewModels.Admin.AdminModulePageViewModel
+
+<header class="page-header admin-page-header">
+    <div>
+        <p class="eyebrow">@Model.PermissionName</p>
+        <h1>@Model.Title</h1>
+        <p>@Model.Description</p>
+    </div>
+    @if (Model.CanUsePrimaryAction)
+    {
+        <button type="button" class="btn btn-primary" disabled>@Model.PrimaryActionText</button>
+    }
+</header>
+
+@if (Model.Metrics.Count > 0)
+{
+    <section class="stats-grid" aria-label="@Model.Title 指標">
+        @foreach (var metric in Model.Metrics)
+        {
+            <article class="stat-card admin-stat admin-stat-@metric.Variant">
+                <div class="stat-label">@metric.Label</div>
+                <div class="stat-value">@metric.Value</div>
+                <div class="stat-note">@metric.Note</div>
+            </article>
+        }
+    </section>
+}
+
+@if (Model.WorkflowColumns.Count > 0)
+{
+    <section class="kanban-board admin-workflow" aria-label="@Model.Title 流程">
+        @foreach (var column in Model.WorkflowColumns)
+        {
+            <div class="kanban-column">
+                <div class="kanban-header">
+                    <span class="kanban-title">@column.Title</span>
+                    <span class="kanban-count">@column.Items.Count</span>
+                </div>
+                <div class="kanban-cards">
+                    @foreach (var item in column.Items)
+                    {
+                        <article class="kanban-card">
+                            <div class="kanban-card-title">@item.Title</div>
+                            <div class="kanban-card-desc">@item.Description</div>
+                            <span class="badge badge-@item.BadgeVariant">@item.BadgeText</span>
+                        </article>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+}
+
+<section class="card admin-table-card">
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">@Model.Title</h2>
+            <p class="card-subtitle">列表資料將由正式 Service / API 提供。</p>
+        </div>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    @foreach (var column in Model.Columns)
+                    {
+                        <th scope="col">@column</th>
+                    }
+                    <th scope="col">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Rows.Count == 0)
+                {
+                    <tr>
+                        <td colspan="@(Model.Columns.Count + 1)">
+                            <div class="empty-state">
+                                <strong>@Model.EmptyStateTitle</strong>
+                                <span>@Model.EmptyStateDescription</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            @foreach (var cell in row.Cells)
+                            {
+                                <td>@cell</td>
+                            }
+                            <td>
+                                <span class="badge badge-@row.StatusVariant">@row.StatusText</span>
+                                <button type="button" class="btn btn-secondary btn-sm" disabled>@row.ActionText</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
