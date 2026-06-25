@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using MyWeb.Application.DTOs.Admin.Auth;
 using MyWeb.Application.Interfaces.Auth;
+using MyWeb.Application.Security;
 using MyWeb.Domain.Entities.Accounts;
 
 namespace MyWeb.Application.Services.Auth;
@@ -84,16 +85,34 @@ public sealed class AdminAuthService : IAdminAuthService
             return AdminLoginServiceResult.Failure(InvalidLoginCode, "帳號或密碼錯誤。");
         }
 
-        var roles = user.UserRoles
+        var activeRoles = user.UserRoles
             .Where(userRole => !userRole.Role.IsDeleted)
-            .Select(userRole => userRole.Role.RoleCode)
+            .Select(userRole => userRole.Role)
+            .ToArray();
+
+        var roles = activeRoles
+            .Select(role => role.RoleCode)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(role => role)
             .ToArray();
 
-        var permissions = user.UserRoles
-            .Where(userRole => !userRole.Role.IsDeleted)
-            .SelectMany(userRole => userRole.Role.RolePermissions)
+        var roleDescriptions = activeRoles
+            .GroupBy(role => role.RoleCode, StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                var role = group.First();
+                return new AdminRoleDescriptionDto
+                {
+                    RoleCode = role.RoleCode,
+                    RoleName = role.RoleName,
+                    Description = role.Description ?? string.Empty
+                };
+            })
+            .OrderBy(role => role.RoleName)
+            .ToArray();
+
+        var permissions = activeRoles
+            .SelectMany(role => role.RolePermissions)
             .Select(rolePermission => rolePermission.Permission.PermissionCode)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(permission => permission)
@@ -106,6 +125,7 @@ public sealed class AdminAuthService : IAdminAuthService
             DisplayName = user.DisplayName,
             UserType = user.UserType,
             Roles = roles,
+            RoleDescriptions = roleDescriptions,
             Permissions = permissions
         };
 
@@ -131,7 +151,8 @@ public sealed class AdminAuthService : IAdminAuthService
             .OrderBy(role => role)
             .ToArray();
 
-        var permissions = user.FindAll("permission")
+        var permissions = user.Claims
+            .Where(claim => string.Equals(claim.Type, AdminClaimTypes.Permission, StringComparison.OrdinalIgnoreCase))
             .Select(claim => claim.Value)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(permission => permission)
@@ -143,10 +164,11 @@ public sealed class AdminAuthService : IAdminAuthService
         return new AdminAuthResponse
         {
             UserId = userId,
-            Account = user.FindFirstValue("account") ?? string.Empty,
+            Account = user.FindFirstValue(AdminClaimTypes.Account) ?? string.Empty,
             DisplayName = user.FindFirstValue(ClaimTypes.Name) ?? string.Empty,
-            UserType = user.FindFirstValue("user_type") ?? string.Empty,
+            UserType = user.FindFirstValue(AdminClaimTypes.UserType) ?? string.Empty,
             Roles = roles,
+            RoleDescriptions = ParseRoleDescriptions(user),
             Permissions = permissions
         };
     }
@@ -158,13 +180,59 @@ public sealed class AdminAuthService : IAdminAuthService
         {
             new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new(ClaimTypes.Name, user.DisplayName),
-            new("account", user.Account),
-            new("user_type", user.UserType)
+            new(AdminClaimTypes.Account, user.Account),
+            new(AdminClaimTypes.UserType, user.UserType)
         };
 
         claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
-        claims.AddRange(user.Permissions.Select(permission => new Claim("permission", permission)));
+        claims.AddRange(user.RoleDescriptions.Select(role => new Claim(AdminClaimTypes.RoleInfo, EncodeRoleInfo(role))));
+        claims.AddRange(user.Permissions.Select(permission => new Claim(AdminClaimTypes.Permission, permission)));
 
         return claims;
+    }
+
+    private static IReadOnlyCollection<AdminRoleDescriptionDto> ParseRoleDescriptions(ClaimsPrincipal user)
+    {
+        var roleDescriptions = user.FindAll(AdminClaimTypes.RoleInfo)
+            .Select(claim =>
+            {
+                var parts = claim.Value.Split(AdminClaimTypes.RoleInfoSeparator);
+                return new AdminRoleDescriptionDto
+                {
+                    RoleCode = parts.Length > 0 ? parts[0] : string.Empty,
+                    RoleName = parts.Length > 1 ? parts[1] : string.Empty,
+                    Description = parts.Length > 2 ? parts[2] : string.Empty
+                };
+            })
+            .Where(role => !string.IsNullOrWhiteSpace(role.RoleCode))
+            .GroupBy(role => role.RoleCode, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .OrderBy(role => role.RoleName)
+            .ToArray();
+
+        if (roleDescriptions.Length > 0)
+        {
+            return roleDescriptions;
+        }
+
+        return user.FindAll(ClaimTypes.Role)
+            .Select(claim => new AdminRoleDescriptionDto
+            {
+                RoleCode = claim.Value,
+                RoleName = claim.Value,
+                Description = string.Empty
+            })
+            .DistinctBy(role => role.RoleCode)
+            .OrderBy(role => role.RoleName)
+            .ToArray();
+    }
+
+    private static string EncodeRoleInfo(AdminRoleDescriptionDto role)
+    {
+        return string.Join(
+            AdminClaimTypes.RoleInfoSeparator.ToString(),
+            role.RoleCode,
+            role.RoleName,
+            role.Description);
     }
 }

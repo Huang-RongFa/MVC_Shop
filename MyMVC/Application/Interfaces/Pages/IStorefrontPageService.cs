@@ -18,13 +18,24 @@ public interface IStorefrontPageService
         ClaimsPrincipal user,
         string? keyword,
         string? category,
+        string? origin,
+        string? certification,
+        int? minPrice,
+        int? maxPrice,
+        string? sort,
+        string? view,
         int page,
         CancellationToken cancellationToken);
 
     /// <summary>取得商品詳細；找不到商品時應讓 Controller 回傳 404。</summary>
-    Task<ProductDetailViewModel> GetProductDetailAsync(
+    Task<ProductDetailViewModel?> GetProductDetailAsync(
         ClaimsPrincipal user,
         int productId,
+        CancellationToken cancellationToken);
+
+    /// <summary>取得農夫故事頁資料；匿名可瀏覽，篩選僅影響展示資料。</summary>
+    Task<FarmerStoryPageViewModel> GetFarmerStoriesAsync(
+        string? filter,
         CancellationToken cancellationToken);
 
     /// <summary>取得目前會員購物車；正式實作需重新驗價與確認 SKU 可售狀態。</summary>

@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using MyWeb.Application.DTOs.Common;
+using MyWeb.Application.Security;
+using MyWeb.Data.Seed;
 using MyWeb.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +38,7 @@ var allowedOrigins = configuredOrigins.Length > 0
     ? configuredOrigins
     : ["http://localhost:5173", "https://localhost:5173", "http://localhost:5174", "https://localhost:5174"];
 
+// 正式環境必須由組態白名單指定來源；localhost fallback 只服務本機 Vue/Razor 開發流程。
 // 開發環境允許 SameAsRequest；正式環境使用 Secure Cookie，符合 HttpOnly Secure Cookie 的登入策略。
 var cookieSecurePolicy = builder.Environment.IsDevelopment()
     ? CookieSecurePolicy.SameAsRequest
@@ -101,22 +104,50 @@ builder.Services
 
         options.Events.OnRedirectToAccessDenied = context =>
         {
-            // TODO: 後台頁面權限不足時可導向專用 AccessDenied 頁，而不是共用前台登入頁。
             if (IsApiRequest(context.Request))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return Task.CompletedTask;
             }
 
-            context.Response.Redirect("/account/login");
-            return Task.CompletedTask;
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return context.Response.WriteAsync("沒有權限存取此管理頁面。");
         };
     });
 
-builder.Services.AddAuthorization();
-// TODO: 正式模組權限需補 Policy-based Authorization，例如 Products.Read、Orders.Write、AuditLogs.Read。
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        // 同時接受新舊 Claim Type，讓既有 Cookie 在 Claim 常數化過程中仍可被辨識。
+        policy.RequireAssertion(context =>
+            context.User.HasClaim("user_type", "Admin")
+            || context.User.HasClaim("user_type", "Staff")
+            || context.User.HasClaim("UserType", "Admin")
+            || context.User.HasClaim("UserType", "Staff"));
+    });
+
+    foreach (var permission in AdminPermissionCodes.All)
+    {
+        // 每個後台 Permission 都註冊成 Policy；Controller Attribute 是入口保護，Service 仍需再檢查。
+        options.AddPolicy(permission, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(context =>
+                IsAdminUser(context.User)
+                && HasPermission(context.User, permission));
+        });
+    }
+});
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    await app.SeedAdminAuthAsync();
+    await app.SeedStorefrontCatalogAsync();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -189,4 +220,21 @@ static bool RequiresCsrfValidation(HttpContext context)
 static bool IsApiRequest(HttpRequest request)
 {
     return request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase);
+}
+
+static bool IsAdminUser(System.Security.Claims.ClaimsPrincipal user)
+{
+    // 後台身分由伺服器簽發的 Cookie Claim 判斷，不能信任前端傳入的角色或權限欄位。
+    return user.HasClaim(AdminClaimTypes.UserType, "Admin")
+        || user.HasClaim(AdminClaimTypes.UserType, "Staff")
+        || user.HasClaim("UserType", "Admin")
+        || user.HasClaim("UserType", "Staff");
+}
+
+static bool HasPermission(System.Security.Claims.ClaimsPrincipal user, string permission)
+{
+    // Permission Claim 以精確比對處理，避免大小寫或部分字串比對造成越權。
+    return user.Claims.Any(claim =>
+        string.Equals(claim.Type, AdminClaimTypes.Permission, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(claim.Value, permission, StringComparison.OrdinalIgnoreCase));
 }

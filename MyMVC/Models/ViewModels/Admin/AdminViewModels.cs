@@ -4,11 +4,41 @@ public sealed class AdminDashboardViewModel
 {
     public string DisplayName { get; init; } = "管理員";
 
+    public IReadOnlyList<AdminRoleDescriptionViewModel> RoleDescriptions { get; init; } = [];
+
+    public IReadOnlyList<AdminQuickLinkViewModel> QuickLinks { get; init; } = [];
+
     public IReadOnlyList<AdminMetricCardViewModel> Metrics { get; init; } = [];
 
     public IReadOnlyList<AdminWorkItemViewModel> WorkItems { get; init; } = [];
 
+    public IReadOnlyList<AdminTableRowViewModel> RecentOrders { get; init; } = [];
+
+    public IReadOnlyList<AdminAuditEventViewModel> RecentAuditEvents { get; init; } = [];
+
     public IReadOnlyList<AdminWorkItemViewModel> SystemAlerts { get; init; } = [];
+}
+
+public sealed class AdminRoleDescriptionViewModel
+{
+    public string RoleCode { get; init; } = string.Empty;
+
+    public string RoleName { get; init; } = string.Empty;
+
+    public string Description { get; init; } = string.Empty;
+}
+
+public sealed class AdminQuickLinkViewModel
+{
+    public string Title { get; init; } = string.Empty;
+
+    public string Description { get; init; } = string.Empty;
+
+    public string Controller { get; init; } = "Admin";
+
+    public string Action { get; init; } = string.Empty;
+
+    public string PermissionName { get; init; } = string.Empty;
 }
 
 public sealed class AdminMetricCardViewModel
@@ -91,6 +121,8 @@ public sealed class AdminModulePageViewModel
 
 public sealed class AdminTableRowViewModel
 {
+    public string LeadingIcon { get; init; } = string.Empty;
+
     public IReadOnlyList<string> Cells { get; init; } = [];
 
     public string StatusText { get; init; } = string.Empty;
@@ -98,6 +130,17 @@ public sealed class AdminTableRowViewModel
     public string StatusVariant { get; init; } = "neutral";
 
     public string ActionText { get; init; } = "查看";
+}
+
+public sealed class AdminAuditEventViewModel
+{
+    public string ActionName { get; init; } = string.Empty;
+
+    public string Description { get; init; } = string.Empty;
+
+    public string OccurredAtText { get; init; } = string.Empty;
+
+    public string Variant { get; init; } = "neutral";
 }
 
 public sealed class AdminKanbanColumnViewModel

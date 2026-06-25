@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using MyWeb.Application.DTOs.Storefront.Products;
+using MyWeb.Application.Interfaces.Cart;
+using MyWeb.Application.Interfaces.Catalog;
 using MyWeb.Application.Interfaces.Pages;
 using MyWeb.Models.ViewModels.Auth;
 using MyWeb.Models.ViewModels.Storefront;
@@ -7,109 +10,144 @@ namespace MyWeb.Application.Services.Pages;
 
 /// <summary>
 /// 組裝前台 Razor ViewModel。
-/// 目前此 Service 主要支撐頁面切版與流程展示，正式交易邏輯仍應拆到商品、購物車、訂單、付款等專責 Service。
+/// 商品、分類、價格與庫存由 Catalog/Cart Service 提供，避免 View 使用靜態商品假資料。
 /// </summary>
 public sealed class StorefrontPageService : IStorefrontPageService
 {
-    // TODO: 改由 ProductCategoryService 從 ProductCategories 查詢可公開分類，並加入快取與排序規則。
-    private static readonly IReadOnlyList<CategoryCardViewModel> Categories =
+    private readonly ICartService _cartService;
+    private readonly IProductCatalogQueryService _productCatalogQueryService;
+
+    public StorefrontPageService(
+        ICartService cartService,
+        IProductCatalogQueryService productCatalogQueryService)
+    {
+        _cartService = cartService;
+        _productCatalogQueryService = productCatalogQueryService;
+    }
+
+    // 農場故事目前是前台內容頁的展示資料，未參與訂單、庫存、價格或權限決策。
+    // 正式內容管理完成後，應改由內容/供應商模組提供，View 仍只接收 ViewModel。
+    private static readonly IReadOnlyList<FarmerStoryCardViewModel> Farmers =
     [
         new()
         {
-            Name = "水果",
-            Description = "當季果物與家庭常備水果。",
-            Slug = "fruit",
-            VisualClass = "visual-fruit"
+            FarmerId = 1,
+            Name = "陳明輝",
+            Avatar = "👨‍🌾",
+            Region = "台南玉井",
+            RegionTag = "台南",
+            VisualClass = "farmer-mango",
+            ProduceEmoji = "🥭",
+            YearsOfExperience = 22,
+            Story = "陳明輝在玉井種了二十多年的愛文芒果。從父親那代傳下來的園子，如今也開始讓兒子一起打理。他說，好的芒果靠的是耐心，等果子自己決定什麼時候熟。",
+            ProduceTags = ["🥭 愛文芒果", "🍍 鳳梨", "🫙 手工芒果醬"],
+            Certifications = ["有機", "CAS"],
+            OrderCountText = "1,240",
+            RatingText = "4.97"
         },
         new()
         {
-            Name = "蔬菜",
-            Description = "葉菜、根莖與料理配菜。",
-            Slug = "vegetable",
-            VisualClass = "visual-vegetable"
+            FarmerId = 2,
+            Name = "林秀珍",
+            Avatar = "👩‍🌾",
+            Region = "苗栗大湖",
+            RegionTag = "苗栗",
+            VisualClass = "farmer-strawberry",
+            ProduceEmoji = "🍓",
+            YearsOfExperience = 15,
+            Story = "林秀珍是大湖少數堅持不套袋種植草莓的農夫。她說日照才是甜度的關鍵，她的草莓比市售的小一圈，但香氣是普通草莓的兩倍。",
+            ProduceTags = ["🍓 大湖草莓", "🫐 野生藍莓", "🍓 草莓果醬"],
+            Certifications = ["有機"],
+            OrderCountText = "867",
+            RatingText = "4.98"
         },
         new()
         {
-            Name = "冷藏",
-            Description = "需低溫配送的新鮮食材。",
-            Slug = "chilled",
-            VisualClass = "visual-chilled"
+            FarmerId = 3,
+            Name = "張志遠",
+            Avatar = "🧑‍🌾",
+            Region = "南投埔里",
+            RegionTag = "南投",
+            VisualClass = "farmer-mushroom",
+            ProduceEmoji = "🍄",
+            YearsOfExperience = 9,
+            Story = "前工程師轉行種菇，張志遠把精準控溫技術帶進菇棚。他的菌絲來自日本長野，在埔里的霧氣中長出完全不輸進口品的風味。",
+            ProduceTags = ["🍄 松茸", "🫘 牛肝菌", "🌾 雪白菇", "🍄 黑木耳"],
+            Certifications = ["CAS"],
+            OrderCountText = "543",
+            RatingText = "4.96"
         },
         new()
         {
-            Name = "促銷",
-            Description = "限時優惠與組合商品。",
-            Slug = "promotion",
-            VisualClass = "visual-promotion"
+            FarmerId = 4,
+            Name = "王美慧",
+            Avatar = "👩‍🌾",
+            Region = "雲林西螺",
+            RegionTag = "雲林",
+            VisualClass = "farmer-vegetable",
+            ProduceEmoji = "🥦",
+            YearsOfExperience = 18,
+            Story = "西螺醬油的故鄉也盛產蔬菜。王美慧的家族三代務農，她率先在西螺申請有機轉型，說服周圍五個農家一起改變。",
+            ProduceTags = ["🥦 花椰菜", "🥬 高麗菜", "🫑 青椒", "🥕 紅蘿蔔", "🧅 洋蔥"],
+            Certifications = ["有機", "CAS"],
+            OrderCountText = "2,100",
+            RatingText = "4.95"
+        },
+        new()
+        {
+            FarmerId = 5,
+            Name = "李國豪",
+            Avatar = "👨‍🌾",
+            Region = "屏東縣",
+            RegionTag = "屏東",
+            VisualClass = "farmer-citrus",
+            ProduceEmoji = "🍋",
+            YearsOfExperience = 11,
+            Story = "屏東的陽光讓檸檬的酸更立體。李國豪採用自然農法，不打除草劑，讓雜草在果樹旁自然生長。",
+            ProduceTags = ["🍋 無毒檸檬", "🍊 茂谷柑", "🍈 文旦"],
+            Certifications = ["農藥檢驗"],
+            OrderCountText = "789",
+            RatingText = "4.93"
+        },
+        new()
+        {
+            FarmerId = 6,
+            Name = "蔡慧如",
+            Avatar = "👩‍🌾",
+            Region = "梨山",
+            RegionTag = "梨山",
+            VisualClass = "farmer-mountain",
+            ProduceEmoji = "🍎",
+            YearsOfExperience = 27,
+            Story = "海拔 2000 公尺的梨山冬天會結霜。蔡慧如的蘋果在嚴寒中長得慢，也因此積累了更多糖分。",
+            ProduceTags = ["🍎 梨山蘋果", "🍐 新興梨", "🍑 水蜜桃"],
+            Certifications = ["CAS", "高山產區"],
+            OrderCountText = "1,560",
+            RatingText = "4.99"
         }
     ];
 
-    // TODO: 改由 ProductService / ProductSkuService 查詢正式商品、SKU、售價、上下架與庫存摘要；避免前端信任展示價格。
-    private static readonly IReadOnlyList<ProductCardViewModel> ProductCards =
-    [
-        new()
-        {
-            ProductId = 1,
-            Name = "高山蜜蘋果",
-            ShortDescription = "脆甜多汁，適合家庭常備與禮盒搭配。",
-            CategoryName = "水果",
-            PriceText = "NT$ 189 / 盒",
-            PromotionLabel = "當季",
-            StockStatusText = "可購買",
-            StockStatusVariant = "success",
-            VisualClass = "visual-apple"
-        },
-        new()
-        {
-            ProductId = 2,
-            Name = "有機綠花椰",
-            ShortDescription = "清洗分裝，適合快速料理與便當備餐。",
-            CategoryName = "蔬菜",
-            PriceText = "NT$ 88 / 包",
-            PromotionLabel = "冷藏",
-            StockStatusText = "低庫存",
-            StockStatusVariant = "warning",
-            VisualClass = "visual-broccoli"
-        },
-        new()
-        {
-            ProductId = 3,
-            Name = "綜合沙拉箱",
-            ShortDescription = "多款葉菜與小番茄組合，一次備齊輕食餐。",
-            CategoryName = "冷藏",
-            PriceText = "NT$ 320 / 組",
-            PromotionLabel = "組合",
-            StockStatusText = "可購買",
-            StockStatusVariant = "success",
-            VisualClass = "visual-salad"
-        },
-        new()
-        {
-            ProductId = 4,
-            Name = "週末家庭蔬果箱",
-            ShortDescription = "水果與蔬菜搭配，適合三到四人家庭。",
-            CategoryName = "促銷",
-            PriceText = "NT$ 699 / 箱",
-            PromotionLabel = "促銷",
-            StockStatusText = "可購買",
-            StockStatusVariant = "success",
-            VisualClass = "visual-box"
-        }
-    ];
-
-    public Task<StorefrontHomeViewModel> GetHomeAsync(
+    public async Task<StorefrontHomeViewModel> GetHomeAsync(
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
         var isAuthenticated = IsAuthenticated(user);
+        var canShopAsCustomer = CanShopAsCustomer(user);
+        // 未登入或非 Customer 身分不讀取購物車，避免後台 Cookie 進入前台時誤顯購物狀態。
+        var cart = await GetCurrentCartAsync(user, canShopAsCustomer, cancellationToken);
+        var cartQuantities = GetCurrentCartQuantities(cart);
+        var featuredProducts = ApplyCartState(
+            await _productCatalogQueryService.GetFeaturedProductsAsync(8, cancellationToken),
+            cartQuantities,
+            canShopAsCustomer);
 
-        return Task.FromResult(new StorefrontHomeViewModel
+        return new StorefrontHomeViewModel
         {
             IsAuthenticated = isAuthenticated,
-            // TODO: 改由 CartService 依目前會員查詢購物車數量；匿名使用者不應取用會員購物車。
-            CartItemCount = isAuthenticated ? 3 : 0,
-            Categories = Categories,
-            FeaturedProducts = ProductCards.Select(product => product.WithCanAddToCart(isAuthenticated)).ToArray(),
+            CanShopAsCustomer = canShopAsCustomer,
+            CartItemCount = cart.Items.Sum(item => item.Quantity),
+            Categories = await _productCatalogQueryService.GetCategoriesAsync(cancellationToken),
+            FeaturedProducts = featuredProducts,
             PromotionBanners =
             [
                 new()
@@ -125,164 +163,198 @@ public sealed class StorefrontPageService : IStorefrontPageService
                     BadgeText = "低溫"
                 }
             ]
-        });
+        };
     }
 
-    public Task<ProductListViewModel> GetProductListAsync(
+    public async Task<ProductListViewModel> GetProductListAsync(
         ClaimsPrincipal user,
         string? keyword,
         string? category,
+        string? origin,
+        string? certification,
+        int? minPrice,
+        int? maxPrice,
+        string? sort,
+        string? view,
         int page,
         CancellationToken cancellationToken)
     {
         var isAuthenticated = IsAuthenticated(user);
+        var canShopAsCustomer = CanShopAsCustomer(user);
         var normalizedPage = page < 1 ? 1 : page;
-        var products = ProductCards.AsEnumerable();
+        var categories = await _productCatalogQueryService.GetCategoriesAsync(cancellationToken);
+        var selectedCategory = categories.FirstOrDefault(item =>
+            string.Equals(item.Slug, category, StringComparison.OrdinalIgnoreCase));
+        var normalizedSort = NormalizeSort(sort);
+        var normalizedView = string.Equals(view, "list", StringComparison.OrdinalIgnoreCase)
+            ? "list"
+            : "grid";
 
-        // TODO: 正式列表查詢需改成 Repository 分頁查詢，使用 AsNoTracking()，避免載入全部商品後在記憶體篩選。
-        if (!string.IsNullOrWhiteSpace(category))
-        {
-            var selectedCategory = Categories.FirstOrDefault(item =>
-                string.Equals(item.Slug, category, StringComparison.OrdinalIgnoreCase));
+        // 商品列表的篩選值先轉成受控 criteria，讓資料查詢層只接收已正規化的查詢意圖。
+        var result = await _productCatalogQueryService.SearchProductsAsync(
+            new ProductCatalogSearchCriteria(
+                Keyword: keyword?.Trim() ?? string.Empty,
+                CategoryCode: selectedCategory?.Slug ?? string.Empty,
+                OriginName: origin?.Trim() ?? string.Empty,
+                Certification: certification?.Trim() ?? string.Empty,
+                MinPrice: minPrice,
+                MaxPrice: maxPrice,
+                Sort: normalizedSort,
+                Page: normalizedPage,
+                PageSize: 12,
+                FeaturedOnly: false),
+            cancellationToken);
+        var cart = await GetCurrentCartAsync(user, canShopAsCustomer, cancellationToken);
 
-            if (selectedCategory is not null)
-            {
-                products = products.Where(product => product.CategoryName == selectedCategory.Name);
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-        {
-            products = products.Where(product =>
-                product.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || product.ShortDescription.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-        }
-
-        var productList = products
-            .Select(product => product.WithCanAddToCart(isAuthenticated))
-            .ToArray();
-
-        return Task.FromResult(new ProductListViewModel
+        return new ProductListViewModel
         {
             IsAuthenticated = isAuthenticated,
+            CanShopAsCustomer = canShopAsCustomer,
+            ListTitle = selectedCategory is null ? "商品列表" : $"{selectedCategory.Name}商品",
             Keyword = keyword ?? string.Empty,
-            SelectedCategorySlug = category ?? string.Empty,
+            SelectedCategorySlug = selectedCategory?.Slug ?? string.Empty,
+            SelectedOrigin = origin?.Trim() ?? string.Empty,
+            SelectedCertification = certification?.Trim() ?? string.Empty,
+            Sort = normalizedSort,
+            ViewMode = normalizedView,
+            MinPrice = minPrice,
+            MaxPrice = maxPrice,
             Page = normalizedPage,
             PageSize = 12,
-            TotalCount = productList.Length,
-            Categories = Categories,
-            Products = productList
-        });
+            TotalCount = result.TotalCount,
+            Categories = categories,
+            Origins = result.Origins,
+            Certifications = result.Certifications,
+            Products = ApplyCartState(result.Products, GetCurrentCartQuantities(cart), canShopAsCustomer)
+        };
     }
 
-    public Task<ProductDetailViewModel> GetProductDetailAsync(
+    public async Task<ProductDetailViewModel?> GetProductDetailAsync(
         ClaimsPrincipal user,
         int productId,
         CancellationToken cancellationToken)
     {
-        var isAuthenticated = IsAuthenticated(user);
-
-        // TODO: 找不到商品時應回傳可由 Controller 轉成 404 的結果，而不是 fallback 到第一筆展示資料。
-        var product = ProductCards.FirstOrDefault(item => item.ProductId == productId)
-            ?? ProductCards[0];
-
-        return Task.FromResult(new ProductDetailViewModel
+        var detail = await _productCatalogQueryService.GetProductDetailAsync(productId, cancellationToken);
+        if (detail is null)
         {
-            ProductId = product.ProductId,
-            ProductName = product.Name,
-            Description = product.ShortDescription,
-            CategoryName = product.CategoryName,
-            PriceRange = product.PriceText,
-            StockStatusText = product.StockStatusText,
-            StockStatusVariant = product.StockStatusVariant,
-            VisualClass = product.VisualClass,
+            return null;
+        }
+
+        var isAuthenticated = IsAuthenticated(user);
+        var canShopAsCustomer = CanShopAsCustomer(user);
+        var cart = await GetCurrentCartAsync(user, canShopAsCustomer, cancellationToken);
+        var currentCartQuantity = GetCurrentCartQuantities(cart).GetValueOrDefault(detail.ProductId);
+
+        // CanAddToCart 是 UI 狀態；實際加入購物車時 CartService 仍會重新檢查會員身分與庫存。
+        return new ProductDetailViewModel
+        {
+            ProductId = detail.ProductId,
+            ProductName = detail.ProductName,
+            Description = detail.Description,
+            CategoryName = detail.CategoryName,
+            OriginName = detail.OriginName,
+            FarmerName = detail.FarmerName,
+            PriceRange = detail.PriceRange,
+            UnitText = detail.UnitText,
+            StockStatusText = detail.StockStatusText,
+            StockStatusVariant = detail.StockStatusVariant,
+            AvailableStockQuantity = detail.AvailableStockQuantity,
+            CurrentCartQuantity = currentCartQuantity,
+            VisualClass = detail.VisualClass,
             IsAuthenticated = isAuthenticated,
-            CanAddToCart = isAuthenticated,
-            Highlights =
+            CanShopAsCustomer = canShopAsCustomer,
+            CanAddToCart = canShopAsCustomer && detail.AvailableStockQuantity > currentCartQuantity,
+            Skus = detail.Skus,
+            Highlights = detail.Highlights,
+            Certifications = detail.Certifications
+        };
+    }
+
+    public Task<FarmerStoryPageViewModel> GetFarmerStoriesAsync(
+        string? filter,
+        CancellationToken cancellationToken)
+    {
+        var normalizedFilter = string.IsNullOrWhiteSpace(filter) ? "全部" : filter.Trim();
+        var farmers = normalizedFilter == "全部"
+            ? Farmers
+            : Farmers
+                .Where(farmer =>
+                    farmer.RegionTag.Equals(normalizedFilter, StringComparison.OrdinalIgnoreCase)
+                    || farmer.Region.Contains(normalizedFilter, StringComparison.OrdinalIgnoreCase)
+                    || normalizedFilter.Contains(farmer.Region, StringComparison.OrdinalIgnoreCase)
+                    || normalizedFilter.Contains(farmer.RegionTag, StringComparison.OrdinalIgnoreCase)
+                    || farmer.Name.Contains(normalizedFilter, StringComparison.OrdinalIgnoreCase)
+                    || farmer.ProduceTags.Any(tag => tag.Contains(normalizedFilter, StringComparison.OrdinalIgnoreCase))
+                    || farmer.Certifications.Any(item => item.Equals(normalizedFilter, StringComparison.OrdinalIgnoreCase)))
+                .ToArray();
+
+        return Task.FromResult(new FarmerStoryPageViewModel
+        {
+            SelectedFilter = normalizedFilter,
+            Filters =
             [
-                "商品價格與優惠由後端提供。",
-                "建立訂單時會重新確認庫存與折扣。",
-                "付款成功不代表自動出貨。"
+                new() { Label = "全部農場", Value = "全部" },
+                new() { Label = "台南", Value = "台南" },
+                new() { Label = "苗栗", Value = "苗栗" },
+                new() { Label = "南投", Value = "南投" },
+                new() { Label = "雲林", Value = "雲林" },
+                new() { Label = "屏東", Value = "屏東" },
+                new() { Label = "梨山", Value = "梨山" },
+                new() { Label = "有機認證", Value = "有機" },
+                new() { Label = "CAS 優良", Value = "CAS" }
             ],
-            Skus =
+            Farmers = farmers,
+            Promises =
             [
                 new()
                 {
-                    SkuId = product.ProductId * 10 + 1,
-                    SkuName = "標準包裝",
-                    PriceText = product.PriceText,
-                    StockStatusText = product.StockStatusText
+                    Icon = "🤝",
+                    Title = "產地直簽契約",
+                    Description = "與合作農家建立長期採購關係，降低中間流通成本，也讓農夫能穩定投入品質。"
                 },
                 new()
                 {
-                    SkuId = product.ProductId * 10 + 2,
-                    SkuName = "家庭包裝",
-                    PriceText = "依正式商品資料計算",
-                    StockStatusText = "待確認"
+                    Icon = "🔬",
+                    Title = "第三方農藥檢驗",
+                    Description = "高風險品項上架前保留檢驗與批次追蹤規劃，正式上線後應連動商品批號資料。"
+                },
+                new()
+                {
+                    Icon = "💰",
+                    Title = "公平收購定價",
+                    Description = "以可追蹤的商品與供應來源呈現價格，不讓前端自行決定售價或折扣結果。"
                 }
+            ],
+            Regions =
+            [
+                new() { Emoji = "🏔️", Name = "梨山・武陵", CountText = "8 個農場" },
+                new() { Emoji = "🌊", Name = "苗栗大湖", CountText = "12 個農場" },
+                new() { Emoji = "🌾", Name = "雲林西螺", CountText = "21 個農場" },
+                new() { Emoji = "🌿", Name = "南投埔里", CountText = "15 個農場" },
+                new() { Emoji = "☀️", Name = "台南玉井", CountText = "18 個農場" },
+                new() { Emoji = "🌺", Name = "屏東縣", CountText = "24 個農場" },
+                new() { Emoji = "🫐", Name = "彰化田中", CountText = "16 個農場" },
+                new() { Emoji = "🍊", Name = "台東縣", CountText = "13 個農場" }
             ]
         });
     }
 
     public Task<CartViewModel> GetCartAsync(ClaimsPrincipal user, CancellationToken cancellationToken)
     {
-        // TODO: 改由 CartService 讀取目前會員購物車，並重新計算價格、優惠與庫存狀態。
-        return Task.FromResult(new CartViewModel
-        {
-            Items =
-            [
-                new()
-                {
-                    ProductId = 1,
-                    ProductName = "高山蜜蘋果",
-                    SkuName = "標準包裝",
-                    Quantity = 1,
-                    UnitPriceText = "NT$ 189",
-                    LineTotalText = "NT$ 189",
-                    StockStatusText = "可出貨"
-                },
-                new()
-                {
-                    ProductId = 3,
-                    ProductName = "綜合沙拉箱",
-                    SkuName = "家庭包裝",
-                    Quantity = 1,
-                    UnitPriceText = "NT$ 320",
-                    LineTotalText = "NT$ 320",
-                    StockStatusText = "冷藏配送"
-                }
-            ],
-            SubtotalText = "NT$ 509",
-            DiscountTotalText = "由後端促銷服務計算",
-            EstimatedTotalText = "結帳時重新計算",
-            CanCheckout = true
-        });
+        return _cartService.GetCartAsync(user, cancellationToken);
     }
 
-    public Task<CheckoutViewModel> GetCheckoutAsync(ClaimsPrincipal user, CancellationToken cancellationToken)
+    public async Task<CheckoutViewModel> GetCheckoutAsync(
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken)
     {
-        // TODO: 改由 CheckoutService / OrderDraftService 建立結帳摘要；送出訂單時必須在 Service 交易中重新驗價與保留庫存。
-        return Task.FromResult(new CheckoutViewModel
+        var cart = await _cartService.GetCartAsync(user, cancellationToken);
+
+        // 結帳頁目前只呈現購物車摘要；正式建立訂單時不可沿用前端顯示金額，需由 OrderService 重新計算。
+        return new CheckoutViewModel
         {
-            Items =
-            [
-                new()
-                {
-                    ProductId = 1,
-                    ProductName = "高山蜜蘋果",
-                    SkuName = "標準包裝",
-                    Quantity = 1,
-                    UnitPriceText = "NT$ 189",
-                    LineTotalText = "NT$ 189",
-                    StockStatusText = "可出貨"
-                }
-            ],
-            ShippingInfo = new ShippingInfoViewModel
-            {
-                RecipientName = string.Empty,
-                PhoneNumber = string.Empty,
-                Address = string.Empty
-            },
+            Items = cart.Items,
+            ShippingInfo = new ShippingInfoViewModel(),
             PaymentMethods =
             [
                 new()
@@ -300,12 +372,12 @@ public sealed class StorefrontPageService : IStorefrontPageService
             ],
             OrderSummary = new OrderSummaryViewModel
             {
-                SubtotalText = "由後端重新計算",
-                DiscountTotalText = "由優惠服務計算",
+                SubtotalText = cart.SubtotalText,
+                DiscountTotalText = cart.DiscountTotalText,
                 ShippingFeeText = "依物流服務計算",
-                PayableTotalText = "送出訂單後確認"
+                PayableTotalText = cart.EstimatedTotalText
             }
-        });
+        };
     }
 
     public Task<CheckoutCompleteViewModel> GetCheckoutCompleteAsync(
@@ -313,7 +385,6 @@ public sealed class StorefrontPageService : IStorefrontPageService
         string? orderNumber,
         CancellationToken cancellationToken)
     {
-        // TODO: 正式完成頁需依目前會員查詢訂單，確認資料擁有者，避免使用 query string 顯示他人訂單。
         return Task.FromResult(new CheckoutCompleteViewModel
         {
             OrderNumber = string.IsNullOrWhiteSpace(orderNumber) ? "尚未建立正式訂單" : orderNumber,
@@ -325,23 +396,7 @@ public sealed class StorefrontPageService : IStorefrontPageService
 
     public Task<OrderListViewModel> GetOrderListAsync(ClaimsPrincipal user, CancellationToken cancellationToken)
     {
-        // TODO: 改由 OrderService 只查詢目前會員自己的訂單，並加入分頁與狀態篩選。
-        return Task.FromResult(new OrderListViewModel
-        {
-            Orders =
-            [
-                new()
-                {
-                    OrderId = 1,
-                    OrderNumber = "ORD-DEMO-001",
-                    CreatedAtText = "展示資料",
-                    TotalText = "由訂單服務提供",
-                    OrderStatusText = "待付款",
-                    PaymentStatusText = "未付款",
-                    ShipmentStatusText = "未出貨"
-                }
-            ]
-        });
+        return Task.FromResult(new OrderListViewModel());
     }
 
     public Task<OrderDetailViewModel> GetOrderDetailAsync(
@@ -349,40 +404,13 @@ public sealed class StorefrontPageService : IStorefrontPageService
         int orderId,
         CancellationToken cancellationToken)
     {
-        // TODO: 改由 OrderService 查詢訂單詳細，Service 必須確認 Order.UserId 等於目前會員。
         return Task.FromResult(new OrderDetailViewModel
         {
-            OrderNumber = $"ORD-DEMO-{orderId:000}",
-            OrderStatusText = "待付款",
-            PaymentStatusText = "未付款",
-            ShipmentStatusText = "未出貨",
-            TotalText = "由訂單服務提供",
-            Items =
-            [
-                new()
-                {
-                    ProductName = "高山蜜蘋果",
-                    SkuName = "標準包裝",
-                    Quantity = 1,
-                    UnitPriceText = "NT$ 189",
-                    LineTotalText = "NT$ 189"
-                }
-            ],
-            Timeline =
-            [
-                new()
-                {
-                    Title = "訂單建立",
-                    Description = "建立訂單時應保留庫存。",
-                    OccurredAtText = "展示資料"
-                },
-                new()
-                {
-                    Title = "等待付款",
-                    Description = "付款 Callback 驗簽成功後才更新付款狀態。",
-                    OccurredAtText = "展示資料"
-                }
-            ]
+            OrderNumber = $"ORD-{orderId:000}",
+            OrderStatusText = "尚未串接正式訂單查詢",
+            PaymentStatusText = "尚未串接正式付款查詢",
+            ShipmentStatusText = "尚未串接正式物流查詢",
+            TotalText = "NT$ 0"
         });
     }
 
@@ -390,7 +418,6 @@ public sealed class StorefrontPageService : IStorefrontPageService
         ClaimsPrincipal user,
         CancellationToken cancellationToken)
     {
-        // TODO: 改由 MemberService 查詢會員資料；不可將 PasswordHash、SecurityStamp 或內部稽核欄位放入 ViewModel。
         return Task.FromResult(new MemberProfileViewModel
         {
             DisplayName = user.Identity?.Name ?? "會員",
@@ -400,30 +427,92 @@ public sealed class StorefrontPageService : IStorefrontPageService
         });
     }
 
+    private static string NormalizeSort(string? sort)
+    {
+        // 與 ProductCatalogQueryService 保持相同排序語意，避免頁面 query string 出現未支援值。
+        return sort switch
+        {
+            "new" => "new",
+            "price-asc" => "price-asc",
+            "price-desc" => "price-desc",
+            "rating" => "rating",
+            _ => "popular"
+        };
+    }
+
     private static bool IsAuthenticated(ClaimsPrincipal user)
     {
         return user.Identity?.IsAuthenticated == true;
     }
-}
 
-file static class ProductCardViewModelExtensions
-{
-    public static ProductCardViewModel WithCanAddToCart(
-        this ProductCardViewModel product,
-        bool canAddToCart)
+    private static bool CanShopAsCustomer(ClaimsPrincipal user)
     {
+        // 只有 Customer 可進入購買流程；Admin/Staff 即使登入也不應具有前台購買資格。
+        return IsAuthenticated(user)
+            && user.Claims.Any(claim =>
+                (string.Equals(claim.Type, "user_type", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(claim.Type, "UserType", StringComparison.OrdinalIgnoreCase))
+                && string.Equals(claim.Value, "Customer", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task<CartViewModel> GetCurrentCartAsync(
+        ClaimsPrincipal user,
+        bool canShopAsCustomer,
+        CancellationToken cancellationToken)
+    {
+        return canShopAsCustomer
+            ? await _cartService.GetCartAsync(user, cancellationToken)
+            : new CartViewModel();
+    }
+
+    private static IReadOnlyDictionary<long, int> GetCurrentCartQuantities(CartViewModel cart)
+    {
+        return cart.Items
+            .GroupBy(item => item.ProductId)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Sum(item => item.Quantity));
+    }
+
+    private static IReadOnlyList<ProductCardViewModel> ApplyCartState(
+        IReadOnlyList<ProductCardViewModel> products,
+        IReadOnlyDictionary<long, int> cartQuantities,
+        bool canShopAsCustomer)
+    {
+        return products
+            .Select(product => ApplyCartState(product, cartQuantities, canShopAsCustomer))
+            .ToArray();
+    }
+
+    private static ProductCardViewModel ApplyCartState(
+        ProductCardViewModel product,
+        IReadOnlyDictionary<long, int> cartQuantities,
+        bool canShopAsCustomer)
+    {
+        var currentCartQuantity = cartQuantities.GetValueOrDefault(product.ProductId);
+
+        // 以新的 ViewModel 實例回填目前購物車狀態，避免修改 Catalog Service 回傳的共用模型。
         return new ProductCardViewModel
         {
             ProductId = product.ProductId,
             Name = product.Name,
             ShortDescription = product.ShortDescription,
             CategoryName = product.CategoryName,
+            OriginName = product.OriginName,
+            FarmerName = product.FarmerName,
             PriceText = product.PriceText,
+            PriceAmount = product.PriceAmount,
+            UnitText = product.UnitText,
             PromotionLabel = product.PromotionLabel,
             StockStatusText = product.StockStatusText,
             StockStatusVariant = product.StockStatusVariant,
+            AvailableStockQuantity = product.AvailableStockQuantity,
+            CurrentCartQuantity = currentCartQuantity,
             VisualClass = product.VisualClass,
-            CanAddToCart = canAddToCart
+            RatingText = product.RatingText,
+            PublishedAt = product.PublishedAt,
+            Certifications = product.Certifications,
+            CanAddToCart = canShopAsCustomer && product.AvailableStockQuantity > currentCartQuantity
         };
     }
 }

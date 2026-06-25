@@ -15,6 +15,7 @@ namespace MyWeb.Controllers.Api.Admin;
 /// </summary>
 [ApiController]
 [Route("api/admin/auth")]
+[Authorize(Policy = "AdminOnly")]
 public sealed class AdminAuthController : ControllerBase
 {
     private readonly IAdminAuthService _adminAuthService;
@@ -70,7 +71,6 @@ public sealed class AdminAuthController : ControllerBase
         return Ok(ApiResponse<AdminAuthResponse>.Success(result.User));
     }
 
-    [Authorize]
     [HttpGet("me")]
     public ActionResult<ApiResponse<AdminAuthResponse>> Me()
     {
@@ -78,7 +78,6 @@ public sealed class AdminAuthController : ControllerBase
         return Ok(ApiResponse<AdminAuthResponse>.Success(_adminAuthService.BuildCurrentUser(User)));
     }
 
-    [Authorize]
     [HttpPost("logout")]
     public async Task<ActionResult<ApiResponse<object>>> Logout()
     {
