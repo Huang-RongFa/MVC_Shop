@@ -1,26 +1,26 @@
 @model MyWeb.Models.ViewModels.Admin.AdminModulePageViewModel
 
-<header class="page-header admin-page-header">
+<header class="admin-hero admin-module-hero">
     <div>
-        <p class="eyebrow">@Model.PermissionName</p>
+        <p class="admin-eyebrow">@Model.PermissionName</p>
         <h1>@Model.Title</h1>
         <p>@Model.Description</p>
     </div>
     @if (Model.CanUsePrimaryAction)
     {
-        <button type="button" class="btn btn-primary" disabled>@Model.PrimaryActionText</button>
+        <button type="button" class="admin-primary-button" disabled>@Model.PrimaryActionText</button>
     }
 </header>
 
 @if (Model.Metrics.Count > 0)
 {
-    <section class="stats-grid" aria-label="@Model.Title 指標">
+    <section class="admin-stat-grid" aria-label="@Model.Title 指標">
         @foreach (var metric in Model.Metrics)
         {
-            <article class="stat-card admin-stat admin-stat-@metric.Variant">
-                <div class="stat-label">@metric.Label</div>
-                <div class="stat-value">@metric.Value</div>
-                <div class="stat-note">@metric.Note</div>
+            <article class="admin-stat-card admin-stat-@metric.Variant">
+                <div class="admin-stat-label">@metric.Label</div>
+                <div class="admin-stat-value">@metric.Value</div>
+                <div class="admin-stat-note">@metric.Note</div>
             </article>
         }
     </section>
@@ -28,21 +28,21 @@
 
 @if (Model.WorkflowColumns.Count > 0)
 {
-    <section class="kanban-board admin-workflow" aria-label="@Model.Title 流程">
+    <section class="admin-workflow-board" aria-label="@Model.Title 流程">
         @foreach (var column in Model.WorkflowColumns)
         {
-            <div class="kanban-column">
-                <div class="kanban-header">
-                    <span class="kanban-title">@column.Title</span>
-                    <span class="kanban-count">@column.Items.Count</span>
+            <div class="admin-workflow-column">
+                <div class="admin-workflow-header">
+                    <span>@column.Title</span>
+                    <strong>@column.Items.Count</strong>
                 </div>
-                <div class="kanban-cards">
+                <div class="admin-workflow-cards">
                     @foreach (var item in column.Items)
                     {
-                        <article class="kanban-card">
-                            <div class="kanban-card-title">@item.Title</div>
-                            <div class="kanban-card-desc">@item.Description</div>
-                            <span class="badge badge-@item.BadgeVariant">@item.BadgeText</span>
+                        <article class="admin-workflow-card">
+                            <strong>@item.Title</strong>
+                            <p>@item.Description</p>
+                            <span class="admin-badge admin-badge-@item.BadgeVariant">@item.BadgeText</span>
                         </article>
                     }
                 </div>
@@ -51,21 +51,23 @@
     </section>
 }
 
-<section class="card admin-table-card">
-    <div class="card-header">
+<section class="admin-panel">
+    <div class="admin-panel-header">
         <div>
-            <h2 class="card-title">@Model.Title</h2>
-            <p class="card-subtitle">列表資料將由正式 Service / API 提供。</p>
+            <h2>@Model.Title</h2>
+            <p>列表資料將由正式 Service / API 提供，並依權限與分頁條件查詢。</p>
         </div>
     </div>
-    <div class="table-container">
-        <table class="table">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
             <thead>
                 <tr>
+                    <th scope="col" class="admin-table-icon-col"></th>
                     @foreach (var column in Model.Columns)
                     {
                         <th scope="col">@column</th>
                     }
+                    <th scope="col">標記</th>
                     <th scope="col">操作</th>
                 </tr>
             </thead>
@@ -73,8 +75,8 @@
                 @if (Model.Rows.Count == 0)
                 {
                     <tr>
-                        <td colspan="@(Model.Columns.Count + 1)">
-                            <div class="empty-state">
+                        <td colspan="@(Model.Columns.Count + 3)">
+                            <div class="admin-empty-state">
                                 <strong>@Model.EmptyStateTitle</strong>
                                 <span>@Model.EmptyStateDescription</span>
                             </div>
@@ -86,13 +88,16 @@
                     @foreach (var row in Model.Rows)
                     {
                         <tr>
+                            <td class="admin-table-icon">@row.LeadingIcon</td>
                             @foreach (var cell in row.Cells)
                             {
                                 <td>@cell</td>
                             }
                             <td>
-                                <span class="badge badge-@row.StatusVariant">@row.StatusText</span>
-                                <button type="button" class="btn btn-secondary btn-sm" disabled>@row.ActionText</button>
+                                <span class="admin-badge admin-badge-@row.StatusVariant">@row.StatusText</span>
+                            </td>
+                            <td>
+                                <button type="button" class="admin-table-action" disabled>@row.ActionText</button>
                             </td>
                         </tr>
                     }
