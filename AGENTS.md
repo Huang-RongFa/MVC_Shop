@@ -13,8 +13,8 @@
 3. docs/adr/*
 4. docs/MSSQL/*
 5. docs/MVC/*
-6. docs/正式上線技術規範/*
-7. docs/頁面設計/*
+6. docs/production-readiness/*
+7. docs/page-design/*
 
 ## 專案定位
 
@@ -93,10 +93,10 @@ DTO / ViewModel 才能作為 API 或 View 的資料模型。
 當任務涉及 Razor Views、HTML、CSS、JavaScript、版面配置、前台頁面、後台頁面、登入頁面或 DayNight 版型整合時，必須額外閱讀：
 
 ```text
-docs/頁面設計/README_頁面設計總覽.md
-docs/頁面設計/00_版型來源與整合原則.md
-docs/頁面設計/01_前台與後台頁面邊界.md
-docs/頁面設計/02_Views資料夾規劃.md
+docs/page-design/README_頁面設計總覽.md
+docs/page-design/00_版型來源與整合原則.md
+docs/page-design/01_前台與後台頁面邊界.md
+docs/page-design/02_Views資料夾規劃.md
 ```
 
 ## 頁面設計核心規則

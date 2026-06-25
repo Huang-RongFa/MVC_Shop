@@ -1,12 +1,36 @@
+# Build output
 bin/
 obj/
+.vs/
+.buildcheck/
 
+# User / IDE files
 *.user
 *.suo
+*.rsuser
 *.userosscache
 *.sln.docstates
 
+# Local secrets
+.env
+.env.*
 appsettings.Development.json
+appsettings.Local.json
+appsettings.Production.json
+*.secrets.json
+secrets.json
+service-account*.json
+*.pfx
+*.key
+*.pem
 
-.buildcheck/
-MyMVC/App_Data/DataProtectionKeys/
+# Data Protection Keys
+**/App_Data/DataProtectionKeys/
+
+# Temporary projects
+_tmp*/
+_tmp_password_reset/
+
+# Logs
+logs/
+*.log

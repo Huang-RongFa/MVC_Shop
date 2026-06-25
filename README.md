@@ -164,7 +164,7 @@ docs/MVC/
 ### 正式上線技術規範
 
 ```text
-docs/正式上線技術規範/
+docs/production-readiness/
 ```
 
 用途：
@@ -182,7 +182,7 @@ docs/正式上線技術規範/
 ### 頁面設計
 
 ```text
-docs/頁面設計/
+docs/page-design/
 ```
 
 用途：
@@ -192,6 +192,37 @@ docs/頁面設計/
 * 登入、註冊、忘記密碼
 * 商品、購物車、訂單
 * 後台商品、庫存、付款、物流、退款、優惠、稽核管理
+
+---
+
+### 後台管理模式設計
+
+```text
+docs/admin-design/
+```
+
+用途：
+
+* 後台控制模型、模組邊界與管理原則
+* 權限與系統、商品與交易、行銷與洞察、營運總覽
+* Admin Route / Policy / API / Service / 資料表對應
+* 後台功能開發順序、Codex 任務拆分與驗收清單
+
+建議先閱讀：
+
+```text
+docs/admin-design/README_admin_design.md
+docs/admin-design/00_admin_control_model_overview.md
+docs/admin-design/01_permissions_and_system.md
+docs/admin-design/05_admin_api_service_data_mapping.md
+docs/admin-design/06_admin_development_acceptance_checklist.md
+```
+
+完整後台設計整併版：
+
+```text
+docs/admin-design/ADMIN_BACKOFFICE_DESIGN_ALL.md
+```
 
 ---
 
@@ -237,8 +268,9 @@ MyMVC/
 │  ├─ adr/
 │  ├─ MSSQL/
 │  ├─ MVC/
-│  ├─ 正式上線技術規範/
-│  └─ 頁面設計/
+│  ├─ production-readiness/
+│  ├─ page-design/
+│  └─ admin-design/
 │
 ├─ README.md
 └─ CONTEXT.md
@@ -562,16 +594,16 @@ AI 產生程式碼前，必須先說明：
 頁面設計文件位置：
 
 ```text
-docs/頁面設計/
+docs/page-design/
 ```
 
 建議先閱讀：
 
 ```text
-docs/頁面設計/README_頁面設計總覽.md
-docs/頁面設計/01_前台與後台頁面邊界.md
-docs/頁面設計/02_Views資料夾規劃.md
-docs/頁面設計/12_頁面設計開發步驟總表.md
+docs/page-design/README_頁面設計總覽.md
+docs/page-design/01_前台與後台頁面邊界.md
+docs/page-design/02_Views資料夾規劃.md
+docs/page-design/12_頁面設計開發步驟總表.md
 ```
 
 ### 頁面設計分界

@@ -140,7 +140,7 @@ docs/MVC/
 ### 正式上線規範
 
 ```text
-docs/正式上線技術規範/
+docs/production-readiness/
 ```
 
 用途：
@@ -158,7 +158,7 @@ docs/正式上線技術規範/
 ### 頁面設計
 
 ```text
-docs/頁面設計/
+docs/page-design/
 ```
 
 用途：
@@ -169,6 +169,36 @@ docs/頁面設計/
 * 商品頁
 * 購物車與訂單頁
 * 後台管理頁
+
+---
+
+### 後台管理模式設計
+
+```text
+docs/admin-design/
+```
+
+用途：
+
+* 後台總體控制模型、模組邊界與管理原則
+* 權限與系統、商品與交易、行銷與洞察、營運總覽
+* Admin Route / Policy / API / Service / 資料表對應
+* 後台功能開發順序、Codex 任務拆分與驗收清單
+
+建議閱讀順序：
+
+```text
+docs/admin-design/README_admin_design.md
+docs/admin-design/00_admin_control_model_overview.md
+docs/admin-design/01_permissions_and_system.md
+docs/admin-design/02_products_and_transactions.md
+docs/admin-design/03_marketing_and_insights.md
+docs/admin-design/04_operations_dashboard.md
+docs/admin-design/05_admin_api_service_data_mapping.md
+docs/admin-design/06_admin_development_acceptance_checklist.md
+```
+
+若任務涉及後台管理流程、角色權限、後台 API、Service 對應、資料表對應或驗收規則，應優先閱讀本資料夾；若只是 Razor / CSS / Layout / 頁面切版，則同時參考 `docs/page-design/`。
 
 ---
 
@@ -884,7 +914,7 @@ AI 不得任意：
 頁面相關需求以此資料夾為準：
 
 ```text
-docs/頁面設計/
+docs/page-design/
 ```
 
 其內容包含：
