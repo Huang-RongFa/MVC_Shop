@@ -21,6 +21,12 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Index(
         string? keyword,
         string? category,
+        string? origin,
+        string? certification,
+        int? minPrice,
+        int? maxPrice,
+        string? sort,
+        string? view,
         int page = 1,
         CancellationToken cancellationToken = default)
     {
@@ -29,6 +35,12 @@ public sealed class ProductsController : Controller
             User,
             keyword,
             category,
+            origin,
+            certification,
+            minPrice,
+            maxPrice,
+            sort,
+            view,
             page,
             cancellationToken);
 
@@ -38,8 +50,12 @@ public sealed class ProductsController : Controller
     [HttpGet("{id:int}")]
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
-        // TODO: 找不到商品時應由 Service 回傳明確結果，Controller 轉成 NotFound()。
         var viewModel = await _storefrontPageService.GetProductDetailAsync(User, id, cancellationToken);
+        if (viewModel is null)
+        {
+            return NotFound();
+        }
+
         return View(viewModel);
     }
 }

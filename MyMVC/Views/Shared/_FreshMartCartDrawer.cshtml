@@ -1,0 +1,39 @@
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var canShopAsCustomer = User.Claims.Any(claim =>
+        (string.Equals(claim.Type, "user_type", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(claim.Type, "UserType", StringComparison.OrdinalIgnoreCase))
+        && string.Equals(claim.Value, "Customer", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer" aria-label="購物車抽屜">
+    <form id="freshmartDrawerTokenForm" method="post" hidden>
+        @Html.AntiForgeryToken()
+    </form>
+    <div class="drawer-header">
+        <div class="drawer-title">購物車</div>
+        <button class="close-btn" type="button" onclick="closeCart()" aria-label="關閉購物車">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+        <p style="color:var(--mid);font-size:.9rem;text-align:center;padding:3rem 0">購物車是空的，快去挑選商品吧 🛒</p>
+    </div>
+    <div class="drawer-footer">
+        <div class="cart-total">
+            <span class="cart-total-label">合計</span>
+            <span class="cart-total-amount" id="cartTotal">NT$0</span>
+        </div>
+        @if (canShopAsCustomer)
+        {
+            <a class="btn-checkout" asp-controller="Checkout" asp-action="Index">前往結帳</a>
+        }
+        else if (isAuthenticated)
+        {
+            <button class="btn-checkout" type="button" disabled>前台會員可結帳</button>
+        }
+        else
+        {
+            <a class="btn-checkout" asp-controller="Account" asp-action="Login">登入後結帳</a>
+        }
+    </div>
+</div>

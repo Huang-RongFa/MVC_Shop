@@ -1,0 +1,48 @@
+<footer>
+    <div class="footer-top row g-4 mb-5">
+        <div class="footer-brand col-12 col-lg-4">
+            <a asp-controller="Home" asp-action="Index" class="nav-logo d-flex align-items-center gap-2 text-decoration-none">
+                <span class="logo-leaf d-flex align-items-center justify-content-center">🌿</span> FreshMart
+            </a>
+            <p>每一份食材背後，都是一位用心耕作的農人。我們讓好食物找到值得的餐桌。</p>
+        </div>
+        <div class="footer-col col-6 col-lg">
+            <h5>購物</h5>
+            <ul class="list-unstyled d-flex flex-column gap-2">
+                <li><a asp-controller="Products" asp-action="Index" asp-route-category="fruit">水果</a></li>
+                <li><a asp-controller="Products" asp-action="Index" asp-route-category="vegetable">蔬菜</a></li>
+                <li><a asp-controller="Products" asp-action="Index" asp-route-certification="有機認證">有機專區</a></li>
+                <li><a asp-controller="Products" asp-action="Index" asp-route-category="promotion">禮盒組合</a></li>
+                <li><a asp-controller="Home" asp-action="Story">產地故事</a></li>
+            </ul>
+        </div>
+        <div class="footer-col col-6 col-lg">
+            <h5>會員</h5>
+            <ul class="list-unstyled d-flex flex-column gap-2">
+                <li><a asp-controller="Account" asp-action="Login">登入 / 註冊</a></li>
+                <li><a asp-controller="Orders" asp-action="Index">我的訂單</a></li>
+                <li><a asp-controller="Cart" asp-action="Index">購物車</a></li>
+                <li><a asp-controller="Account" asp-action="Profile">會員資料</a></li>
+                <li><a asp-controller="Admin" asp-action="Login">管理員入口</a></li>
+            </ul>
+        </div>
+        <div class="footer-col col-12 col-lg">
+            <h5>幫助</h5>
+            <ul class="list-unstyled d-flex flex-column gap-2">
+                <li><a asp-controller="Home" asp-action="About" asp-fragment="delivery">配送說明</a></li>
+                <li><a asp-controller="Home" asp-action="About" asp-fragment="returns">退換貨政策</a></li>
+                <li><a asp-controller="Home" asp-action="About" asp-fragment="faq">常見問題</a></li>
+                <li><a asp-controller="Home" asp-action="About" asp-fragment="contact">聯絡我們</a></li>
+                <li><a asp-controller="Home" asp-action="Privacy">隱私政策</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom d-flex align-items-center justify-content-between flex-wrap gap-3 pt-4">
+        <span>© 2026 FreshMart 鮮果市集. All rights reserved.</span>
+        <div class="d-flex gap-3">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+            <a href="#">LINE@@</a>
+        </div>
+    </div>
+</footer>

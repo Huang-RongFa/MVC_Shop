@@ -32,6 +32,13 @@ public class HomeController : Controller
         return View(viewModel);
     }
 
+    [HttpGet("/story")]
+    public async Task<IActionResult> Story(string? filter, CancellationToken cancellationToken)
+    {
+        var viewModel = await _storefrontPageService.GetFarmerStoriesAsync(filter, cancellationToken);
+        return View(viewModel);
+    }
+
     public IActionResult Privacy()
     {
         return View();

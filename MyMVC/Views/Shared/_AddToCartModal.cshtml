@@ -1,0 +1,88 @@
+@model MyWeb.Models.ViewModels.Storefront.AddToCartModalViewModel
+@{
+    var modalId = $"addToCartModal-{Model.ProductId}";
+    var quantityInputId = $"addToCartQuantity-{Model.ProductId}";
+    var additionalLimit = Math.Max(1, Model.AvailableStockQuantity - Model.CurrentCartQuantity);
+}
+
+<div class="modal fade add-to-cart-modal"
+     id="@modalId"
+     tabindex="-1"
+     aria-labelledby="@(modalId)-label"
+     aria-hidden="true"
+     data-cart-product-id="@Model.ProductId"
+     data-cart-current-quantity="@Model.CurrentCartQuantity">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="@(modalId)-label">加入購物車</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+            <form method="post"
+                  asp-controller="Cart"
+                  asp-action="AddItem"
+                  data-cart-add-form
+                  data-cart-product-id="@Model.ProductId">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="cart-quantity-modal-layout">
+                        <div class="cart-quantity-modal-product @Model.VisualClass" aria-hidden="true"></div>
+                        <div class="cart-quantity-modal-content">
+                            <div>
+                                <p class="eyebrow">Selected Product</p>
+                                <h3>@Model.Name</h3>
+                            </div>
+                            <dl class="cart-quantity-modal-summary">
+                                <div>
+                                    <dt>金額</dt>
+                                    <dd>@Model.PriceText</dd>
+                                </div>
+                                <div>
+                                    <dt>現有庫存</dt>
+                                    <dd><span data-cart-stock-count>@Model.AvailableStockQuantity</span> 件</dd>
+                                </div>
+                                @if (Model.CurrentCartQuantity > 0)
+                                {
+                                    <div data-cart-existing-row>
+                                        <dt>購物車已有</dt>
+                                        <dd><span data-cart-existing-quantity>@Model.CurrentCartQuantity</span> 件</dd>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div data-cart-existing-row hidden>
+                                        <dt>購物車已有</dt>
+                                        <dd><span data-cart-existing-quantity>@Model.CurrentCartQuantity</span> 件</dd>
+                                    </div>
+                                }
+                                <div>
+                                    <dt>
+                                        <label for="@quantityInputId">選購數量</label>
+                                    </dt>
+                                    <dd>
+                                        <input id="@quantityInputId"
+                                               class="form-control quantity-input"
+                                               type="number"
+                                               name="Quantity"
+                                               value="1"
+                                               min="1"
+                                               max="@additionalLimit"
+                                               inputmode="numeric"
+                                               data-cart-add-quantity />
+                                    </dd>
+                                </div>
+                            </dl>
+                            <p class="cart-add-feedback" data-cart-add-feedback role="status"></p>
+                            <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button class="btn btn-primary" type="submit">確認加入</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

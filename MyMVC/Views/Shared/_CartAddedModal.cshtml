@@ -1,0 +1,21 @@
+<div class="modal fade cart-added-modal"
+     id="cartAddedModal"
+     tabindex="-1"
+     aria-labelledby="cartAddedModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="cartAddedModalLabel">已加入購物車</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+            <div class="modal-body">
+                <p class="cart-added-message" data-cart-added-message role="status">商品已加入購物車。</p>
+            </div>
+            <div class="modal-footer cart-added-actions">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">繼續瀏覽其他商品</button>
+                <a class="btn btn-primary" asp-controller="Cart" asp-action="Index">前往購物車</a>
+            </div>
+        </div>
+    </div>
+</div>

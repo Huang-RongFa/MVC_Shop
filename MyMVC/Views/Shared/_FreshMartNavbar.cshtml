@@ -1,0 +1,196 @@
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    bool HasUserType(string userType)
+    {
+        return User.Claims.Any(claim =>
+            (string.Equals(claim.Type, "user_type", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(claim.Type, "UserType", StringComparison.OrdinalIgnoreCase))
+            && string.Equals(claim.Value, userType, StringComparison.OrdinalIgnoreCase));
+    }
+
+    var canShopAsCustomer = HasUserType("Customer");
+    var isBackOfficeUser = HasUserType("Admin") || HasUserType("Staff");
+    var cartItemCount = canShopAsCustomer && ViewData["CartItemCount"] is int count ? count : 0;
+}
+
+<nav id="navbar" class="position-fixed top-0 start-0 end-0 d-flex align-items-center justify-content-between">
+    <a asp-controller="Home" asp-action="Index" class="nav-logo d-flex align-items-center gap-2 text-decoration-none" aria-label="FreshMart 首頁">
+        <span class="logo-leaf d-flex align-items-center justify-content-center">🌿</span>
+        FreshMart
+    </a>
+    <ul class="nav-links position-absolute top-50 start-50 translate-middle d-flex gap-4 list-unstyled mb-0">
+        <li><a asp-controller="Products" asp-action="Index">商品專區</a></li>
+        <li><a asp-controller="Products" asp-action="Index" asp-route-certification="有機認證">有機專區</a></li>
+        <li><a asp-controller="Home" asp-action="Story">產地故事</a></li>
+        <li class="freshmart-nav-dropdown">
+            <a class="freshmart-nav-parent"
+               asp-controller="Home"
+               asp-action="About"
+               aria-haspopup="true">
+                <span>關於我們</span>
+                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+            </a>
+            <div class="freshmart-nav-submenu" aria-label="關於我們子選單">
+                <a asp-controller="Home" asp-action="About">品牌與服務</a>
+                <a asp-controller="Home" asp-action="About" asp-fragment="delivery">配送說明</a>
+                <a asp-controller="Home" asp-action="About" asp-fragment="returns">退換貨政策</a>
+                <a asp-controller="Home" asp-action="About" asp-fragment="faq">常見問題</a>
+                <a asp-controller="Home" asp-action="About" asp-fragment="contact">聯絡我們</a>
+                <a asp-controller="Home" asp-action="Privacy">隱私政策</a>
+            </div>
+        </li>
+    </ul>
+    <div class="nav-actions d-flex align-items-center gap-3 ms-auto">
+        @* <button class="nav-icon-btn" type="button" title="搜尋" aria-label="搜尋商品">🔍</button> *@
+        @if (canShopAsCustomer || !isAuthenticated)
+        {
+            <button class="nav-icon-btn"
+                    type="button"
+                    onclick="openCart()"
+                    title="購物車"
+                    aria-label="開啟購物車"
+                    style="position:relative">
+                🛒 <span class="cart-badge freshmart-cart-badge" id="cartBadge">@cartItemCount</span>
+            </button>
+        }
+        else if (isBackOfficeUser)
+        {
+            <a class="nav-icon-btn"
+               asp-controller="Admin"
+               asp-action="Index"
+               title="返回後台"
+               aria-label="返回後台">
+                <i class="bi bi-speedometer2" aria-hidden="true"></i>
+            </a>
+        }
+        @if (canShopAsCustomer)
+        {
+            <a class="nav-icon-btn freshmart-account-icon"
+               asp-controller="Account"
+               asp-action="Profile"
+               title="會員中心"
+               aria-label="會員中心">
+                <i class="bi bi-person-circle" aria-hidden="true"></i>
+                <span class="visually-hidden">會員中心</span>
+            </a>
+            <form method="post" asp-controller="Account" asp-action="Logout" class="freshmart-inline-form">
+                @Html.AntiForgeryToken()
+                <button class="nav-icon-btn freshmart-logout-icon"
+                        type="submit"
+                        title="登出"
+                        aria-label="登出">
+                    <i class="bi bi-power" aria-hidden="true"></i>
+                    <span class="visually-hidden">登出</span>
+                </button>
+            </form>
+        }
+        else if (isBackOfficeUser)
+        {
+            <form method="post" asp-controller="Account" asp-action="Logout" class="freshmart-inline-form">
+                @Html.AntiForgeryToken()
+                <button class="nav-icon-btn freshmart-logout-icon"
+                        type="submit"
+                        title="登出"
+                        aria-label="登出">
+                    <i class="bi bi-power" aria-hidden="true"></i>
+                    <span class="visually-hidden">登出</span>
+                </button>
+            </form>
+        }
+        else
+        {
+            <a class="btn-login" asp-controller="Account" asp-action="Login">登入 / 註冊</a>
+        }
+    </div>
+    <button class="nav-icon-btn freshmart-mobile-menu-toggle"
+            id="freshmartMobileMenuToggle"
+            type="button"
+            onclick="toggleFreshmartMobileMenu()"
+            aria-controls="freshmartMobileMenu"
+            aria-expanded="false"
+            aria-label="開啟導覽選單"
+            title="導覽選單">
+        <i class="bi bi-list" aria-hidden="true"></i>
+    </button>
+    <div class="freshmart-mobile-menu" id="freshmartMobileMenu" hidden>
+        <div class="freshmart-mobile-menu-links d-grid gap-2" aria-label="前台導覽">
+            <a class="d-flex align-items-center gap-2" asp-controller="Products" asp-action="Index" onclick="closeFreshmartMobileMenu()">商品專區</a>
+            <a class="d-flex align-items-center gap-2" asp-controller="Products" asp-action="Index" asp-route-certification="有機認證" onclick="closeFreshmartMobileMenu()">有機專區</a>
+            <a class="d-flex align-items-center gap-2" asp-controller="Home" asp-action="Story" onclick="closeFreshmartMobileMenu()">產地故事</a>
+            <div class="freshmart-mobile-menu-group">
+                <a class="freshmart-mobile-menu-parent d-flex align-items-center justify-content-between gap-2"
+                   asp-controller="Home"
+                   asp-action="About"
+                   onclick="closeFreshmartMobileMenu()">
+                    <span>關於我們</span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </a>
+                <div class="freshmart-mobile-submenu" aria-label="關於我們子選單">
+                    <a asp-controller="Home" asp-action="About" asp-fragment="delivery" onclick="closeFreshmartMobileMenu()">配送說明</a>
+                    <a asp-controller="Home" asp-action="About" asp-fragment="returns" onclick="closeFreshmartMobileMenu()">退換貨政策</a>
+                    <a asp-controller="Home" asp-action="About" asp-fragment="faq" onclick="closeFreshmartMobileMenu()">常見問題</a>
+                    <a asp-controller="Home" asp-action="About" asp-fragment="contact" onclick="closeFreshmartMobileMenu()">聯絡我們</a>
+                    <a asp-controller="Home" asp-action="Privacy" onclick="closeFreshmartMobileMenu()">隱私政策</a>
+                </div>
+            </div>
+        </div>
+        <div class="freshmart-mobile-menu-actions d-grid gap-2">
+            @if (canShopAsCustomer || !isAuthenticated)
+            {
+                <button class="freshmart-mobile-action d-flex align-items-center gap-2"
+                        type="button"
+                        onclick="closeFreshmartMobileMenu(); openCart()">
+                    <i class="bi bi-cart3" aria-hidden="true"></i>
+                    <span>購物車</span>
+                    <span class="cart-badge freshmart-cart-badge">@cartItemCount</span>
+                </button>
+            }
+            @if (canShopAsCustomer)
+            {
+                <a class="freshmart-mobile-action d-flex align-items-center gap-2"
+                   asp-controller="Account"
+                   asp-action="Profile"
+                   onclick="closeFreshmartMobileMenu()">
+                    <i class="bi bi-person-circle" aria-hidden="true"></i>
+                    <span>會員中心</span>
+                </a>
+                <form method="post" asp-controller="Account" asp-action="Logout" class="freshmart-mobile-logout-form">
+                    @Html.AntiForgeryToken()
+                    <button class="freshmart-mobile-action freshmart-mobile-logout d-flex align-items-center gap-2"
+                            type="submit">
+                        <i class="bi bi-power" aria-hidden="true"></i>
+                        <span>登出</span>
+                    </button>
+                </form>
+            }
+            else if (isBackOfficeUser)
+            {
+                <a class="freshmart-mobile-action d-flex align-items-center gap-2"
+                   asp-controller="Admin"
+                   asp-action="Index"
+                   onclick="closeFreshmartMobileMenu()">
+                    <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                    <span>返回後台</span>
+                </a>
+                <form method="post" asp-controller="Account" asp-action="Logout" class="freshmart-mobile-logout-form">
+                    @Html.AntiForgeryToken()
+                    <button class="freshmart-mobile-action freshmart-mobile-logout d-flex align-items-center gap-2"
+                            type="submit">
+                        <i class="bi bi-power" aria-hidden="true"></i>
+                        <span>登出</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a class="freshmart-mobile-action freshmart-mobile-login d-flex align-items-center gap-2"
+                   asp-controller="Account"
+                   asp-action="Login"
+                   onclick="closeFreshmartMobileMenu()">
+                    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                    <span>登入 / 註冊</span>
+                </a>
+            }
+        </div>
+    </div>
+</nav>
